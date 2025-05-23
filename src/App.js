@@ -24,7 +24,7 @@ function App() {
             <Route path="/" element={<GameSelectionPage />} />
             {/* Route for the game lobby, with a gameType parameter */}
             <Route path="/lobby/:gameType" element={<GameLobbyPage />} />
-            {/* Route for the goame board route, with gameType parameter and roomCode parameter */}
+            {/* Route for the game board route, with gameType parameter and roomCode parameter */}
             <Route path="/game/:gameType/:roomCode" element={<AssholeGamePage />} />
 
             {/* TODO: Add more game routes as they are implemented */}

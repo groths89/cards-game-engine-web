@@ -9,18 +9,28 @@ function GameLobbyPage() {
     const navigate = useNavigate();
     const { gameType } = useParams();
 
-    const makeApiCall = async (actionType) => {
+    const generateRandomRoomCode = () => {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 4; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return result;
+    };
+
+    const makeApiCall = async (actionType, generatedCode = null) => {
         setError('');
 
         // Basic client-side validation
         if (playerName.trim() === '') {
             setError('Please enter your name.');
         }        
-        if (actionType === 'create' && roomCode.length !== 4) {
-            setError('Create requires a 4-characters room code.');
-        }
-        if (actionType === 'join' && roomCode.length !== 4) {
-            setError('Join requires a 4-characters room code.');
+        
+        const codeToUse = actionType === 'create' ? generatedCode : roomCode;
+
+        if (!codeToUse || codeToUse.length !== 4) {
+            setError('Room code must be 4 characters');
+            return;
         }
 
         try {
@@ -30,7 +40,7 @@ function GameLobbyPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    room_code: roomCode, 
+                    room_code: codeToUse, 
                     player_name: playerName, 
                     game_type: gameType,
                     action: actionType
@@ -42,11 +52,21 @@ function GameLobbyPage() {
             if (response.ok) {
                 console.log('Game joined/created successfully:', data);
                 // Navigate to the specific game board using the roomCode
-                navigate(`/game/${gameType}/${data.game_id || roomCode}`, {
-                    state: {playerId: data.player_id, playerName: playerName }
+                const finalRoomCodeForNav = data.game_id; // Always rely on the backend's definitive room_code
+                if (!finalRoomCodeForNav || finalRoomCodeForNav.length !== 4) {
+                    setError("API response missing valid game_id. Cannot proceed.");
+                    console.error("API response missing or invalid game_id:", data);
+                    return;
+                }
+
+                const navigationPath = `/game/${gameType}/${finalRoomCodeForNav}`;
+                console.log('Navigating to:', navigationPath, 'with player_id:', data.player_id);
+
+                navigate(navigationPath, {
+                    state: { playerId: data.player_id, playerName: playerName }
                 });
             } else {
-                setError(data.error || 'Failed to join game. Please try again.');
+                setError(data.error || 'Failed to manage game room. Please try again.');
                 console.error("API Error:", data);
             }
         } catch (apiError) {
@@ -57,7 +77,9 @@ function GameLobbyPage() {
 
     const handleCreateGame = (event) => {
         event.preventDefault();
-        makeApiCall('create');
+        const newCode = generateRandomRoomCode();
+        setRoomCode(newCode);
+        makeApiCall('create', newCode);
     }
 
     const handleJoinGame = (event) => {
@@ -68,18 +90,19 @@ function GameLobbyPage() {
     return (
         <div className="game-lobby-page-container">
             <h2>Join or Create Room for {gameType ? gameType.toUpperCase(): 'Game'}</h2>
-            <form className="join-game-form">
-                <div className="form-group">
-                    <label htmlFor="roomCode">ROOM CODE</label>
-                    <input
-                        type="text"
-                        id="roomCode"
-                        placeholder="ENTER 4-LETTER CODE"
-                        maxLength="4"
-                        value={roomCode}
-                        onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                        className="form-input"
-                    />
+            <form onSubmit={(e) => e.preventDefault()} className="join-game-form">
+                    {/* Hide roomCode input for 'create' action, maybe display it for user's info */}
+                    <div className="form-group">
+                        <label htmlFor="roomCode">Room Code:</label>
+                        <input
+                            type="text"
+                            id="roomCode"
+                            value={roomCode} // Bind to state
+                            onChange={(e) => setRoomCode(e.target.value.toUpperCase())} // Convert to uppercase
+                            placeholder="ABCD"
+                            maxLength="4"
+                            className="form-input"
+                        />
                     </div>
                     <div className="form-group">
                     <label htmlFor="playerName">NAME</label>
