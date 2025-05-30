@@ -1,0 +1,46 @@
+.player-hand-container {
+  position: relative; /* Keep this for positioning within game-board-layout */
+  display: flex;
+  /* Removed flex-wrap: nowrap; - not strictly needed if we manage spacing */
+  justify-content: center; /* Aligns cards to the right */
+  align-items: flex-start; /* Aligns cards to the bottom (important for fanning base) */
+  width: 100vw;
+  padding: 10px 0;
+  margin-top: auto;
+  margin-bottom: 10px;
+  perspective: 1000px;
+  height: 250px;
+  box-sizing: border-box;
+  z-index: 100;
+  overflow: hidden;
+  /* Removed the direct margin-right from here and will apply to individual cards more precisely */
+}
+
+/* Styling for individual cards within the hand */
+.player-hand-container .card {
+  /* Reset previous margin-right if it was here. */
+  /* A typical card is 75px wide. -45px means 30px is visible. */
+  /* Experiment with this value to get desired overlap. */
+  transform-origin: bottom center; /* Crucial for rotating/fanning from the bottom */
+  transition: transform 0.2s ease-out, margin-right 0.2s ease-out; /* Smooth transitions */
+  z-index: 1; /* Default z-index for unselected cards */
+  position: relative; /* Needed for z-index to work against siblings */
+}
+
+/* To improve fanning and selection, you might need to use dynamic styles in React: */
+/* In Hand.js, you'd calculate a `transform` and `z-index` based on index */
+/* For now, let's just spread them out better. */
+
+/* When a card is selected, make it pop out and move slightly up */
+.player-hand-container .card.selected {
+  transform: translateY(-25px) scale(1.05); /* Lifts higher when selected */
+  z-index: 10; /* Bring to front when selected */
+  box-shadow: 0 0 10px var(--brand-blue); /* Highlight with a brand color */
+  border-color: var(--brand-blue);
+}
+
+/* Optional: Slight fanning effect (more advanced, can add later) */
+/* This requires calculating index and total cards in JS to pass as CSS variables */
+/* Example (in Hand.js, calculate an angle and apply): */
+/* style={{ transform: `rotate(${calculatedAngle}deg)` }} */
+/* For now, we'll focus on spacing. */

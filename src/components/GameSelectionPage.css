@@ -3,6 +3,12 @@
   padding: 20px;
 }
 
+.game-selection-page h2 {
+  font-size: 2.5em;
+  margin-bottom: 40px;
+  color: #444;
+}
+
 .game-list {
   display: flex;
   justify-content: center;
@@ -18,6 +24,9 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: left;
   background-color: #fff;
+  display: flex;
+  flex-direction: column; /* Stack image and details vertically */
+  transition: transform 0.2s ease-in-out; /* Smooth hover effect */
 }
 
 .game-card .game-thumbnail {
@@ -55,4 +64,105 @@
 
 .game-card .play-button:hover {
   background-color: #0056b3;
+}
+
+.game-card:hover {
+  transform: translateY(-5px); /* Lift card slightly on hover */
+}
+
+.game-thumbnail {
+  width: 100%;
+  height: 180px; /* Fixed height for thumbnails */
+  object-fit: cover; /* Cover the area, cropping if necessary */
+  border-bottom: 1px solid #eee; /* Separator below image */
+}
+
+.game-details {
+  padding: 20px;
+  flex-grow: 1; /* Allows details section to take available space */
+  display: flex;
+  flex-direction: column;
+}
+
+.game-details h3 {
+  font-size: 1.5em;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.game-details p {
+  font-size: 0.95em;
+  line-height: 1.5;
+  color: #666;
+  margin-bottom: 20px;
+  flex-grow: 1; /* Allow paragraph to take space if needed */
+}
+
+.game-options,
+.game-actions {
+  display: flex;
+  flex-wrap: wrap; /* Allow buttons to wrap */
+  gap: 10px; /* Space between buttons */
+  margin-top: auto; /* Push buttons to the bottom of the card */
+}
+
+/* Button Styles */
+.button {
+  background-color: #007bff; /* Primary blue for buttons */
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  flex-grow: 1; /* Allow buttons to grow to fill space */
+  min-width: 100px; /* Ensure a minimum width for buttons */
+}
+
+.button:hover:not(:disabled) {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Specific styles for "Coming Soon" card */
+.game-card.coming-soon {
+  opacity: 0.7; /* Dim the card slightly */
+  pointer-events: none; /* Disable interaction with the card entirely */
+}
+
+.game-card.coming-soon .button {
+  background-color: #888; /* Grey out the button */
+  cursor: not-allowed;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .game-list {
+    flex-direction: column; /* Stack cards vertically on smaller screens */
+    align-items: center; /* Center stacked cards */
+  }
+
+  .game-card {
+    width: 90%; /* Make cards take more width on smaller screens */
+    max-width: 350px; /* Prevent them from becoming too wide */
+  }
+}
+
+@media (max-width: 480px) {
+  .game-selection-page h2 {
+    font-size: 2em;
+  }
+
+  .button {
+    padding: 10px 12px;
+    font-size: 0.85em;
+  }
 }

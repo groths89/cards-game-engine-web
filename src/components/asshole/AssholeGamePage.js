@@ -1,120 +1,131 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useGame } from "../../contexts/GameContext";
 import './AssholeGamePage.css';
+import Hand from "../hands/Hand";
 
 function AssholeGamePage() {
-    const { gameType, roomCode } = useParams();
+    const { roomCode: paramRoomCode, gameType } = useParams();
     const location = useLocation();
+
+    // Retrieve state from navigation if available, otherwise fallback to context
+    const initialRoomCode = location.state?.roomCode || paramRoomCode;
+    const initialPlayerId = location.state?.playerId; // Only rely on this for initial load
+
     const navigate = useNavigate();
-
-    const playerId = location.state?.playerId;
+    const {
+        roomCode, setRoomCode,
+        playerId, setPlayerId, // Still need these to update global state
+        gameState, setGameState,
+        getGameState,
+        error, setError // Assuming you have these for error handling
+    } = useGame();
+    const [localRoomCode, setLocalRoomCode] = useState(initialRoomCode);
+    const [localPlayerId, setLocalPlayerId] = useState(initialPlayerId);
     const playerName = location.state?.playerName;
+    // Use a ref to store the interval ID
+    const intervalRef = useRef(null); // Import useRef from 'react'
 
-    const [gameState, setGameState] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [selectedCards, setSelectedCards] = useState([]);
     const [minPlayersRequired, setMinPlayersRequired] = useState(0);
     const [maxPlayersAllowed, setMaxPlayersAllowed] = useState(0);
 
+    const yourHand = gameState?.your_hand || [];
     const isHost = gameState?.host_id === playerId;
-    
-    const fetchGameState = useCallback(async () => {
-        if (!roomCode || !playerId || !gameType) {
-            setError("Missing game type, room code, or player ID. Please join a game first.");
-            setLoading(false);
-        }
 
-        try {
-            const response = await fetch(`http://127.0.0.1:5000/game_state?room_code=${roomCode}&player_id=${playerId}&game_type=${gameType}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                setGameState(data);
-                setMinPlayersRequired(data.MIN_PLAYERS || 0);
-                setMaxPlayersAllowed(data.MAX_PLAYERS || 0);
-            } else {
-                setError(data.error || 'Failed to fetch game state.');
-                console.error('API Error:', data);
-                if (response.status === 404) {
-                    setError("Game room not found or no longer exists. Returning to lobby.");
-                    setTimeout(() => navigate('/lobby'), 3000); // Navigate after a delay
-                }
-            }
-        } catch (apiError) {
-            setError('Network Error. Could not connect to the game server.');
-            console.error('Network Error:', apiError);
-        } finally {
-            setLoading(false);
-        }
-    }, [roomCode, playerId, gameType, navigate]);
-
-    // Add this useEffect to log values when they change
+    // --- CRITICAL DEBUGGING LOGS ---
     useEffect(() => {
-        console.log("--- AssholeGamePage Debug ---");
-        console.log("Current Frontend Player ID:", playerId);
-        console.log("Game State Host ID (from backend):", gameState?.host_id);
-        console.log("Is Current Player The Host (frontend calculation):", isHost);
-        console.log("Room Code:", roomCode);
-        console.log("--- End Debug ---");
-    }, [playerId, gameState, isHost, roomCode]); // Add dependencies
+        console.groupCollapsed("DEBUG: AssholeGamePage - GameState Update");
+        console.log("Full gameState received:", gameState);
+        console.log("Current playerId:", playerId);
+        console.log("Is current player the host?", isHost);
 
-    useEffect(() => {
-        fetchGameState();
-        const interval = setInterval(fetchGameState, 2000);
-        return () => clearInterval(interval);
-    }, [fetchGameState]);
-
-    const handleLeaveRoom = async () => {
-        try {
-            const response = await fetch('http://127.0.0.1:5000/leave_room', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ room_code: roomCode, player_id: playerId }),
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                console.log('Left room successfully:', data.message);
-                navigate('/lobby'); // Navigate back to the lobby after leaving
-            } else {
-                setError(data.error || 'Failed to leave room.');
-                console.error('Leave Room API Error:', data);
-            }            
-        } catch (apiError) {
-            setError('Network error. Could not leave room.');
-            console.error('Network Error leaving room:', apiError);
+        if (gameState) {
+            console.log("gameState.game_started:", gameState.game_started);
+            console.log("gameState.current_player_id:", gameState.current_player_id);
+            console.log("gameState.game_message:", gameState.game_message);
+            console.log("gameState.players:", gameState.players);
+        } else {
+            console.log("gameState is null or undefined.");
         }
-    }
+        console.groupEnd();
+    }, [gameState, playerId, isHost]); // Re-run when gameState or player context changes
+    // --- END DEBUGGING LOGS ---
 
-    const handleDeleteRoom = async () => {
-        if (!window.confirm("Are you sure you want to delete this room? This cannot be undone.")) {
-            return; // User cancelled
+    const handleCardClick = (clickedCard) => {
+        if (!clickedCard || !clickedCard.id || typeof clickedCard.id !== 'string') {
+            console.error("  ERROR: Clicked card does not have a valid string 'id' property:", clickedCard);
+            console.groupEnd();
+            return;
         }
-        try {
-            const response = await fetch('http://127.0.0.1:5000/delete_room', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ room_code: roomCode, player_id: playerId }),
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                console.log('Room deleted successfully:', data.message);
-                navigate('/lobby'); // Navigate back to the lobby after deletion
-            } else {
-                setError(data.error || 'Failed to delete room.');
-                console.error('Delete Room API Error:', data);
+        const isSelected = selectedCards.some(
+            (c) => {
+                const comparisonResult = c.id === clickedCard.id;
+                return comparisonResult;
             }
-        } catch (apiError) {
-            setError('Network error. Could not delete room.');
-            console.error('Network Error deleting room:', apiError);
-        }
+        );
+        console.log(`  Is card already selected? ${isSelected}`);
+
+        setSelectedCards(prevSelected => {
+            let newState;
+            if (isSelected) {
+                newState = prevSelected.filter((c) => c.id !== clickedCard.id);
+            } else {
+                // Ensure we are adding the *full clickedCard object* with its ID
+                newState = [...prevSelected, clickedCard];
+            }
+            return newState;
+        });
     };
+    
+    useEffect(() => {
+        const fetchGameData = async () => {
+            console.log(`Fetching game state for room: ${localRoomCode}, player: ${localPlayerId}`); // Add this log
+            if (!localRoomCode || !localPlayerId) {
+                console.error("Cannot fetch game state: roomCode or playerId is missing.");
+                setError("Cannot fetch game state: Missing room ID or player ID.");
+                return;
+            }
+            const state = await getGameState(localRoomCode, localPlayerId, gameType);
+            if (state && state.success) {
+                setGameState(state); // Update context state with fetched game state
+            } else if (state) {
+                console.error("API Error:", state.message || state.error); // Log API error
+                setError(state.message || state.error || 'Failed to fetch game state.');
+            } else {
+                console.error("Failed to fetch game state: No response from API.");
+                setError('Failed to fetch game state: Network or unknown error.');
+            }
+        };
+
+        // Fetch immediately on mount
+        fetchGameData();
+
+        // Set up polling (adjust interval as needed)
+        // Clear existing interval if component re-renders quickly
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+        intervalRef.current = setInterval(fetchGameData, 3000); // Poll every 3 seconds
+
+        // Cleanup on unmount
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [localRoomCode, localPlayerId, gameType, getGameState, setGameState, setError]);
+
+    useEffect(() => {
+        // Only update context if we have new values from navigation
+        if (initialRoomCode && initialRoomCode !== roomCode) {
+            setRoomCode(initialRoomCode);
+        }
+        if (initialPlayerId && initialPlayerId !== playerId) {
+            setPlayerId(initialPlayerId); // Update context state
+        }
+    }, [initialRoomCode, initialPlayerId, roomCode, playerId, setRoomCode, setPlayerId]);
 
     const handleStartGame = async (event) => {
         event.preventDefault();
@@ -137,7 +148,6 @@ function AssholeGamePage() {
 
             if (response.ok) {
                 console.log('Game start successful:', data.message);
-                await fetchGameState();
             } else {
                 setError(data.error || 'Failed to start game.');
                 console.error('Start game API error:', data);
@@ -152,18 +162,11 @@ function AssholeGamePage() {
 
     };
 
-    // --- Placeholder for other game actions ---
-    const toggleCardSelection = (cardStr) => {
-        setSelectedCards(prev =>
-            prev.includes(cardStr) ? prev.filter(c => c !== cardStr) : [...prev, cardStr]
-        );
-    };
-
     const handlePlayCards = async () => {
         setError('');
         setLoading(true);
         try {
-            const response = await fetch('http://127.0.0.1:5000/play_card', {
+            const response = await fetch('http://127.0.0.1:5000/play_cards', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -176,7 +179,6 @@ function AssholeGamePage() {
             if (response.ok) {
                 console.log('Cards played:', data.message);
                 setSelectedCards([]); // Clear selection
-                await fetchGameState(); // Refresh game state
             } else {
                 setError(data.error || 'Failed to play cards.');
             }
@@ -202,7 +204,6 @@ function AssholeGamePage() {
             const data = await response.json();
             if (response.ok) {
                 console.log('Turn passed:', data.message);
-                await fetchGameState(); // Refresh game state
             } else {
                 setError(data.error || 'Failed to pass turn.');
             }
@@ -225,44 +226,19 @@ function AssholeGamePage() {
         return <div className="asshole-game-page"><p>No game data available.</p></div>
     }
 
-    const currentPlayersInRoom = gameState.all_players_data || [];
-    const yourHand = gameState.your_hand || [];
+    const currentPlayersInRoom = gameState.num_active_players || [];
     const pileCards = gameState.pile || [];
     const rankings = gameState.rankings || {};
 
     // Derived state for convenience
+    const currentTurnPlayerId = gameState?.current_turn_player_id;
+    const allPlayersData = gameState?.all_players_data || []; // Use correct backend field name for players array
+    const currentPlayerName = allPlayersData.find(p => p.id === currentTurnPlayerId)?.name;
     const isYourTurn = gameState && gameState.current_player === playerName;
-    const canStartGame = !gameState.game_started && currentPlayersInRoom.length >= minPlayersRequired;
+    const canStartGame = !gameState.game_started && currentPlayersInRoom >= minPlayersRequired;
 
     return (
         <div className="asshole-game-page">
-            {/* Room Code top-right */}
-            <div className="room-code-display">
-                Room Code: <strong>{roomCode}</strong>
-            </div>
-
-            {/* Lobby Status section top-left */}
-            <div className="lobby-status-section">
-                <h4>Lobby Status</h4>
-                <div className="lobby-status-grid">
-                    <div className="lobby-status-row">
-                        <span className="lobby-label">Current:</span>
-                        <div className="status-indicator-group">
-                            <span className={`status-light ${currentPlayersInRoom.length >= minPlayersRequired ? 'active' : 'inactive'}`}></span>
-                            <span className="status-value">{currentPlayersInRoom.length}</span>
-                        </div>
-                    </div>
-                    <div className="lobby-status-row">
-                        <span className="lobby-label">Min Players:</span>
-                        <span className="status-value">{minPlayersRequired}</span>
-                    </div>
-                    <div className="lobby-status-row">
-                        <span className="lobby-label">Max Players:</span>
-                        <span className="status-value">{maxPlayersAllowed}</span>
-                    </div>
-                </div>
-            </div>
-
             {/* Player Status Sidebar (Vertical List) - unchanged */}
             {/* This is where player names, hand sizes, and potentially host status will be shown */}
             <div className="player-status-sidebar">
@@ -298,9 +274,33 @@ function AssholeGamePage() {
                     <p>No players in room.</p>
                 )}
             </div>
-
-            <h2>{gameType.toUpperCase()} Game Board</h2>
-            <h4>{isYourTurn ? "(YOUR TURN)" : "(Waiting for " + (gameState.current_player || 'players') + ")"}</h4>
+            <div className="game-top-bar">
+                {/* Action Buttons (PLAY, PASS, Leave/Delete Room) */}
+                <div className="game-board-actions">
+                    {/* Action Buttons */}
+                    {/* ... (Play Card, Pass Turn buttons) ... */}
+                    {/* Your hand and action buttons */}
+                    {gameState.game_started && ( // Only show hand and actions if game started
+                        <div className="player-turn-actions">
+                            <button
+                                onClick={handlePlayCards} // You'll need to create this handler
+                                className="button primary-action play-button"
+                                disabled={!isYourTurn || selectedCards.length === 0 || loading}
+                            >
+                                PLAY
+                            </button>
+                            <button
+                                onClick={handlePassTurn} // You'll need to create this handler
+                                className="button primary-action pass-button"
+                                disabled={!isYourTurn || pileCards.length === 0 || loading} // Can't pass on empty pile
+                            >
+                                PASS
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div> {/* END game-top-bar */}
+            <h4 className="game-message">{isYourTurn ? "(YOUR TURN)" : "(Waiting for " + (currentPlayerName || 'players') + ")"}</h4>
             <div className="pile-area">
                 {pileCards.length > 0 ? (
                     pileCards.slice(-4).map((cardStr, index) => ( // Show last few cards on pile
@@ -317,7 +317,7 @@ function AssholeGamePage() {
             {!gameState.game_started && (
                 <div className="start-game-button-container">
                 {!gameState.game_started && isHost && (
-                    <button onClick={handleStartGame} className="start-game-button">
+                    <button disabled={canStartGame ? '' : 'disabled'} onClick={handleStartGame} className="start-game-button">
                         Start Game ({gameState.all_players_data.length}/{minPlayersRequired} players)
                     </button>
                 )}
@@ -328,72 +328,18 @@ function AssholeGamePage() {
             )}
 
 
-                {/* Action Buttons */}
-                <div className="game-action-buttons">
-                    {/* ... (Play Card, Pass Turn buttons) ... */}
-                    {/* Your hand and action buttons */}
-                    {gameState.is_game_started && ( // Only show hand and actions if game started
-                        <div className="your-hand-container">
-                            <h3>Your Hand ({yourHand.length} cards)</h3>
-                            <div className="player-hand">
-                                {/* Map over gameState.your_hand to render card-image for each */}
-                                {yourHand.map((cardStr, index) => (
-                                    <div
-                                        key={index}
-                                        className={`card-image ${selectedCards.includes(cardStr) ? 'selected' : ''}`}
-                                        onClick={() => toggleCardSelection(cardStr)}
-                                    >
-                                        {cardStr} {/* For now, display card string */}
-                                        {/* If you have images, use <img> here */}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="action-buttons">
-                                <button
-                                    onClick={handlePlayCards} // You'll need to create this handler
-                                    className="play-button"
-                                    disabled={!isYourTurn || selectedCards.length === 0 || loading}
-                                >
-                                    PLAY
-                                </button>
-                                <button
-                                    onClick={handlePassTurn} // You'll need to create this handler
-                                    className="pass-button"
-                                    disabled={!isYourTurn || pileCards.length === 0 || loading} // Can't pass on empty pile
-                                >
-                                    PASS
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-
-                    {/* NEW: Leave Room Button */}
-                    <button onClick={handleLeaveRoom} className="btn btn-warning">
-                        Leave Room
-                    </button>
-
-                    {/* NEW: Delete Room Button (only for host) */}
-                    {isHost && (
-                        <button onClick={handleDeleteRoom} className="btn btn-danger">
-                            Delete Room
-                        </button>
-                    )}
-                </div>
-
-            {/* Rankings if game is over */}
-            {gameState.is_game_over && (
-                <div className="rankings-section">
-                    <h3>Game Over! Final Rankings:</h3>
-                    <ul className="rankings-list">
-                        {Object.entries(rankings).map(([playerName, rankName]) => (
-                            <li key={playerName}>
-                                **{rankName}**: {playerName}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}            
+                {/* Player hand */}
+                {gameState.game_started && ( // Only show hand and actions if game started
+                    <div>
+                        {playerId && yourHand.length > 0 && (
+                            <Hand 
+                                cards={yourHand}
+                                onCardClick={handleCardClick}
+                                selectedCards={selectedCards}
+                            />
+                        )}
+                    </div>
+                )}      
         </div>
     );
 }

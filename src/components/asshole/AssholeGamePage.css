@@ -2,25 +2,21 @@
   display: flex;
   flex-direction: column; /* Stack elements vertically */
   align-items: center; /* Center content horizontally */
-  min-height: calc(
-    100vh - var(--header-height, 80px)
-  ); /* Adjust for header height */
   padding: 20px;
-  background-color: #202225; /* Dark background */
-  color: #dcddde; /* Light text color */
+  overflow-y: auto;
+  background-color: var(--ui-light-background);
+  color: var(--ui-dark-text);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   position: relative;
 }
 
 .asshole-game-page h2 {
-  color: #7289da; /* Discord blue */
   margin-bottom: 15px;
   font-size: 2.2em;
   letter-spacing: 1px;
 }
 
 .asshole-game-page h3 {
-  color: #b9bbbe;
   margin-bottom: 25px;
   font-size: 1.2em;
 }
@@ -47,30 +43,30 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  background-color: #333;
+  background-color: var(--ui-light-background);
+  border: 1px solid var(--ui-border-light);
   padding: 10px 15px;
   border-radius: 8px;
   text-align: left;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   z-index: 10;
   min-width: 200px;
-  color: #eee;
+  color: var(--ui-dark-text);
 }
 
 .lobby-status-section h4 {
-  color: #fff;
+  font-family: "Montserrat", sans-serif;
+  color: var(--brand-blue);
   margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.2em;
+  margin-bottom: 15px;
+  font-size: 1.4em;
   text-align: center;
-  border-bottom: 1px solid #555;
-  padding-bottom: 5px;
 }
 
 .lobby-status-grid {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 5px 10px;
+  gap: 10px 15px;
 }
 
 .lobby-status-row {
@@ -78,17 +74,20 @@
 }
 
 .lobby-label {
+  font-weight: 600;
+  color: var(--ui-muted-text);
+}
+
+.status-value {
   font-weight: bold;
-  color: #bbb;
-  padding-right: 5px;
-  grid-column: 1;
+  font-size: 1.1em;
+  color: var(--ui-dark-text);
 }
 
 .status-indicator-group {
   display: flex;
   align-items: center;
-  gap: 5px;
-  grid-column: 2;
+  gap: 8px;
 }
 
 .player-count-display {
@@ -98,7 +97,85 @@
   margin: 0;
 }
 
+/* Status Light */
+.status-light-container {
+  position: relative; /* For positioning multiple lights */
+  margin-right: 10px; /* Space between light and name */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-light {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #95a5a6; /* Default gray for inactive/unknown */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.status-light.active {
+  animation: pulse 1.5s infinite ease-in-out;
+  background-color: var(--brand-green); /* Use brand green for active */
+  box-shadow: 0 0 5px var(--brand-green); /* Soft glow when active */
+}
+
+.status-light.inactive {
+  background-color: #888; /* Grey for inactive/out of game */
+  box-shadow: 0 0 3px #888;
+}
+
+.status-light.inactive {
+  background-color: #e74c3c; /* Red for inactive/out player */
+  box-shadow: 0 0 5px rgba(231, 76, 60, 0.7);
+}
+
+.status-light.current-turn-light {
+  position: absolute; /* Overlap or position near active light */
+  width: 8px; /* Smaller for distinct indicator */
+  height: 8px;
+  background-color: #ffd700; /* Yellow/Gold for current turn */
+  box-shadow: 0 0 8px #ffd700;
+  top: -2px; /* Adjust position relative to the main status light */
+  right: -12px;
+}
+
 /* --- Player Status Sidebar Styles --- */
+
+.player-status-sidebar {
+  position: absolute; /* Position relative to its parent container */
+  top: 220px; /* Adjust as needed, e.g., below game title */
+  left: 20px; /* Position on the left side */
+  width: 250px; /* Fixed width for the sidebar */
+  padding: 15px;
+  background-color: var(--brand-blue);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: var(--ui-light-grey);
+  font-size: 0.95em;
+  z-index: 10; /* Ensure it stays above other elements if they overlap */
+  max-height: calc(
+    100vh - 40px
+  ); /* Limit height to viewport, with some margin */
+  overflow-y: auto; /* Enable scrolling if player list gets too long */
+}
+
 .player-status-sidebar h3 {
   text-align: center;
   color: #fff;
@@ -120,84 +197,6 @@
 .player-status-item.current-player {
   border: 2px solid #00bfff; /* Highlight current player's own item */
   background-color: #4a4a4a;
-}
-
-/* Status Light */
-.status-light-container {
-  position: relative; /* For positioning multiple lights */
-  margin-right: 10px; /* Space between light and name */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status-light {
-  position: relative;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.3); /* Slight border for definition */
-}
-
-.status-light.active {
-  background-color: #00ff00; /* Green for active */
-  box-shadow: 0 0 5px #00ff00;
-}
-
-.status-light.inactive {
-  background-color: #888; /* Grey for inactive/out of game */
-  box-shadow: 0 0 3px #888;
-}
-
-.status-light.current-turn-light {
-  position: absolute; /* Overlap or position near active light */
-  width: 8px; /* Smaller for distinct indicator */
-  height: 8px;
-  background-color: #ffd700; /* Yellow/Gold for current turn */
-  box-shadow: 0 0 8px #ffd700;
-  top: -2px; /* Adjust position relative to the main status light */
-  right: -12px;
-}
-
-.player-details {
-  display: flex;
-  flex-direction: column; /* Stack name, cards, rank vertically */
-  flex-grow: 1; /* Allow details to take available space */
-}
-
-.player-name {
-  position: relative;
-  font-weight: bold;
-  color: #fff;
-  margin-bottom: 3px;
-}
-
-.player-card-count,
-.player-rank,
-.player-role {
-  font-size: 0.85em;
-  color: #ccc;
-  margin-bottom: 2px;
-}
-
-/* --- Player Status Sidebar Styles --- */
-
-.player-status-sidebar {
-  position: absolute; /* Position relative to its parent container */
-  top: 220px; /* Adjust as needed, e.g., below game title */
-  left: 20px; /* Position on the left side */
-  width: 250px; /* Fixed width for the sidebar */
-  padding: 15px;
-  background-color: #2c3e50; /* Darker background for distinction */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  color: #ecf0f1; /* Light text color */
-  font-size: 0.95em;
-  z-index: 10; /* Ensure it stays above other elements if they overlap */
-  max-height: calc(
-    100vh - 40px
-  ); /* Limit height to viewport, with some margin */
-  overflow-y: auto; /* Enable scrolling if player list gets too long */
 }
 
 /* Scrollbar styling for player-status-sidebar */
@@ -227,23 +226,32 @@
 
 .player-item {
   background-color: #34495e; /* Slightly lighter dark for player item background */
+  color: var(--ui-light-grey);
   padding: 10px 12px;
   border-radius: 6px;
   display: flex;
   flex-direction: column; /* Stack name, hand size, rank vertically within item */
   align-items: flex-start; /* Align text to the left */
   transition: background-color 0.2s ease, transform 0.1s ease;
-  border: 1px solid transparent; /* Default transparent border */
+  border: 1px solid var(--ui-border-light); /* Default transparent border */
 }
 
 .player-item.you {
-  border: 1px solid #3498db; /* Highlight for the current player (You) */
-  background-color: #3f5c78; /* Slightly different background for "You" */
+  border-color: var(--brand-green); /* Highlight for the current player (You) */
+  background-color: color-mix(
+    in srgb,
+    var(--brand-blue) 90%,
+    var(--brand-green) 10%
+  ); /* Slightly different background for "You" */
   font-weight: bold;
 }
 
 .player-item:hover {
-  background-color: #4a6581; /* Darken on hover */
+  background-color: color-mix(
+    in srgb,
+    #34495e 90%,
+    var(--ui-light-grey) 10%
+  ); /* Darken on hover */
   transform: translateY(-2px); /* Slight lift on hover */
 }
 
@@ -254,27 +262,11 @@
   margin-bottom: 5px; /* Space below name for hand size/rank */
 }
 
-.status-light {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #95a5a6; /* Default gray for inactive/unknown */
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.status-light.active {
-  background-color: #2ecc71; /* Green for active player */
-  box-shadow: 0 0 5px rgba(46, 204, 113, 0.7);
-}
-
-.status-light.inactive {
-  background-color: #e74c3c; /* Red for inactive/out player */
-  box-shadow: 0 0 5px rgba(231, 76, 60, 0.7);
-}
-
 .player-name {
-  color: #ecf0f1;
+  position: relative;
   font-weight: bold;
+  color: #ecf0f1;
+  margin-bottom: 3px;
 }
 
 /* Style for "(You)" and "(Host)" indicators within player-name */
@@ -288,7 +280,7 @@
 .player-hand-size,
 .player-rank {
   font-size: 0.85em;
-  color: #bdc3c7; /* Lighter gray for secondary info */
+  color: var(--ui-border-light); /* Lighter gray for secondary info */
   margin-left: 18px; /* Indent to align with player name, past the status light */
 }
 
@@ -304,7 +296,21 @@
   padding: 10px;
 }
 
-/* --- Responsive Adjustments (Optional, but good practice) --- */
+.player-details {
+  display: flex;
+  flex-direction: column; /* Stack name, cards, rank vertically */
+  flex-grow: 1; /* Allow details to take available space */
+}
+
+.player-card-count,
+.player-rank,
+.player-role {
+  font-size: 0.85em;
+  color: #ccc;
+  margin-bottom: 2px;
+}
+
+/* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
   .player-status-sidebar {
     position: static; /* Make it part of the normal flow */
@@ -326,21 +332,35 @@
 
 /* --- Room Code Display (Top-Right) --- */
 .room-code-display {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #333;
+  background-color: color-mix(
+    in srgb,
+    var(--ui-light-background) 90%,
+    var(--ui-dark-text) 5%
+  );
   padding: 10px 15px;
   border-radius: 8px;
-  font-size: 0.8em;
-  color: #eee;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 10; /* Keep it on top */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
 }
 
-.room-code-display strong {
-  color: #ffd700; /* Gold-like color for emphasis on the code */
-  font-size: 1.2em; /* Slightly larger for emphasis */
+.room-code-label {
+  font-size: 0.85em;
+  color: var(--ui-muted-text);
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.room-code-value {
+  font-size: 2.2em;
+  font-weight: bold;
+  color: var(--brand-blue);
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Game Board Area --- */
@@ -353,64 +373,85 @@
   margin-top: 20px;
 }
 
-/* --- Player Information / Status Area --- */
-.player-info-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap; /* Allow player cards to wrap */
-  gap: 15px; /* Space between player info cards */
-  margin-top: 20px;
-  margin-bottom: 30px;
-  width: 100%;
-}
+.game-board-layout {
+  /* This is the core game area container */
+  display: grid;
+  /* Define grid areas for a structured layout: */
+  /*
+      "top-players"       (Players across the top)
+      "left-player main right-player" (Side players and main play area)
+      "controls    main bottom-player-hand" (Controls, main area, and player's hand)
+    */
+  grid-template-areas:
+    "top-players top-players top-players"
+    "left-side   main-area   right-side"
+    "controls    player-hand player-hand"; /* Renamed for clarity: player-hand is now bottom-right */
 
-.player-card {
-  background-color: #2c2f33; /* Slightly lighter dark background */
-  padding: 10px 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  min-width: 120px; /* Ensure cards don't get too small */
-  position: relative;
-}
+  /* Define column and row sizes */
+  grid-template-columns: 1fr 3fr 1fr; /* Example: left side 1fr, middle 3fr, right side 1fr */
+  grid-template-rows: auto 1fr auto; /* Top row auto, middle row takes remaining space, bottom row auto */
 
-.player-card.current-player {
-  border: 2px solid #7289da; /* Highlight for current player */
-  box-shadow: 0 0 15px rgba(114, 137, 218, 0.7); /* Glow effect */
-}
+  width: 95%; /* Adjust as needed, could be fixed width or fluid */
+  max-width: 1400px; /* Max width for large screens */
+  height: calc(
+    100vh - 150px
+  ); /* Fill remaining viewport height, adjust for header/footer if any */
+  gap: 20px; /* Space between grid items */
 
-.player-card.inactive {
-  opacity: 0.6; /* Dim inactive players */
-  text-decoration: line-through;
-}
-
-.player-card h4 {
-  margin: 5px 0;
-  color: #fff;
-  font-size: 1.1em;
-}
-
-.player-card p {
-  margin: 3px 0;
-  font-size: 0.9em;
-  color: #b9bbbe;
+  background-color: var(
+    --game-board-background
+  ); /* A distinct background for the board itself */
+  border: 1px solid var(--ui-border-dark);
+  border-radius: 12px; /* Slightly more rounded for the main board */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* More prominent shadow for the board */
+  padding: 20px;
+  box-sizing: border-box; /* Crucial for padding to be included in width/height */
+  position: relative; /* Essential for absolutely positioned elements like player hand */
+  overflow: hidden; /* Hide anything that goes outside the board bounds */
 }
 
 /* --- Pile Area --- */
 .pile-area {
-  min-height: 120px; /* Give some visual space for the pile */
-  background-color: #2c2f33;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 30px;
+  width: 600px; /* Or adjust as needed */
+  height: 200px; /* Or adjust as needed */
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 80%;
-  max-width: 600px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-  border: 1px dashed #4f545c;
-  position: relative; /* For card stacking */
+  font-size: 1.2em;
+  color: var(--ui-dark-text); /* Ensure text is readable on the background */
+
+  margin-top: 30px;
+  margin-bottom: 30px;
+  padding: 20px; /* Add some padding if content is inside */
+
+  background-color: var(
+    --ui-light-background
+  ); /* Use your light background variable */
+  border: 1px solid var(--ui-border-light); /* Use your light border variable */
+  border-radius: 8px; /* Maintain consistent rounded corners */
+
+  /* --- Clean 2D Styling --- */
+
+  /* Subtle box-shadow for a hint of lift, but not 3D */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* A gentle, diffused shadow */
+
+  /* Remove any previous 3D transforms or aggressive shadows if they were applied */
+  transform: none;
+  transform-style: flat; /* Or simply remove transform-style */
+
+  /* Ensure no pseudo-elements are creating unwanted 3D effects if you tried that */
+  /* If you used ::before/::after for 3D, remove or comment them out */
+  /*
+    &::before, &::after {
+        content: none;
+    }
+    */
+}
+
+/* Optional hover effect */
+.pile-area:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Slightly more pronounced on hover */
+  transform: translateY(-2px); /* Optional: slight lift on hover */
 }
 
 .pile-area p {
@@ -453,30 +494,49 @@
   z-index: 10;
 }
 
-/* --- Your Hand Area --- */
-.your-hand-container {
-  width: 90%;
-  max-width: 800px;
-  background-color: #2c2f33;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-  text-align: center;
-  margin-top: auto; /* Pushes hand to the bottom */
-  margin-bottom: 20px;
-}
-
-.your-hand-container h3 {
-  margin-bottom: 15px;
-  color: #fff;
-}
-
-.player-hand {
+/* --- Player Hand Area --- */
+.player-hand-container {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap; /* Allow cards to wrap to next line if many */
-  gap: 10px; /* Space between cards */
-  min-height: 120px; /* Ensure hand area has space even if empty */
+  justify-content: center; /* Center the hand horizontally */
+  align-items: flex-end; /* Align cards to the bottom if they have different heights (for fanning) */
+  position: relative; /* For potential absolute positioning of cards if fanning is complex */
+  width: 100%; /* Take full width of its parent */
+  overflow-x: hidden; /* Hide any overflow if cards go too far to the sides during fan */
+  padding: 20px 0; /* Add padding to ensure cards aren't stuck to edges */
+  margin-top: 40px; /* Space from elements above */
+  perspective: 1000px; /* For 3D transforms if desired */
+}
+
+/* Style for individual cards within the hand */
+.player-hand-container .card {
+  margin-left: -50px; /* Adjust this negative margin to control overlap */
+  transition: transform 0.2s ease-out, margin-left 0.2s ease-out,
+    z-index 0.1s ease;
+  cursor: pointer;
+  position: relative; /* Crucial for z-index and transformations */
+  z-index: 1; /* Default z-index */
+  transform-origin: bottom center; /* Pivot point for rotation */
+  transform: rotate(0deg); /* Default rotation */
+}
+
+.player-hand-container .card:first-child {
+  margin-left: 0; /* No negative margin for the first card */
+}
+
+/* Hover effect: bring card to front, slightly lift, and maybe spread a bit more */
+.player-hand-container .card:hover {
+  z-index: 10; /* Bring hovered card to front */
+  transform: translateY(-20px) scale(1.05); /* Lift and slightly enlarge */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  /* For fanning, you might adjust margin-left on hover to spread slightly */
+}
+
+/* Active/selected card style */
+.player-hand-container .card.selected {
+  border: 3px solid #3498db; /* Highlight selected card */
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
+  transform: translateY(-30px) scale(1.08); /* Lift more prominently */
+  z-index: 15;
 }
 
 /* Individual card styling */
@@ -519,99 +579,109 @@
 }
 
 /* --- Action Buttons --- */
-.game-action-buttons {
-  margin-top: 20px;
+/* NEW: Styles for the top bar container */
+.game-top-bar {
+  display: flex; /* Make it a flex container */
+  justify-content: space-between; /* Pushes content to the ends */
+  align-items: flex-start; /* Aligns items to the top if they have different heights */
+  flex-wrap: wrap; /* Allows items to wrap on smaller screens if they don't fit */
+  margin-bottom: 20px; /* Space between the top bar and content below */
+  padding: 0 10px; /* Some horizontal padding to keep content off edges */
+}
+
+.game-board-actions {
   display: flex;
-  gap: 10px; /* Space out buttons */
-  justify-content: center; /* Center the buttons */
-  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+  flex-direction: column; /* Keep buttons stacked vertically within their group */
+  align-items: flex-end; /* Align buttons to the right side of their container */
+  margin-top: 0; /* Remove top margin as game-top-bar handles spacing */
+  margin-bottom: 0; /* Remove bottom margin */
+  gap: 10px; /* Reduced gap between button groups */
+  flex-shrink: 0; /* Prevent buttons from shrinking if space is tight */
 }
 
-/* General button styles (if not already defined in your global CSS) */
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
-}
-
-.btn-primary {
-  background-color: #007bff; /* Blue */
-  color: white;
-}
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.btn-secondary {
-  background-color: #6c757d; /* Grey */
-  color: white;
-}
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-
-.btn-warning {
-  background-color: #ffc107; /* Yellow */
-  color: #212529; /* Dark text for contrast */
-}
-.btn-warning:hover {
-  background-color: #e0a800;
-}
-
-.btn-danger {
-  background-color: #dc3545; /* Red */
-  color: white;
-}
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.action-buttons {
-  margin-top: 25px;
+.player-turn-actions {
   display: flex;
-  gap: 15px;
+  gap: 20px; /* Space between Play and Pass buttons */
   justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 400px; /* Limit width for these primary buttons */
 }
 
-.action-buttons button {
-  padding: 12px 25px;
+.room-management-actions {
+  display: flex;
+  gap: 15px; /* Space between Leave and Delete buttons */
+  justify-content: center;
+  width: 100%;
+  max-width: 400px; /* Limit width for these buttons */
+}
+
+/* Base button style (similar to GameLobbyPage, but can be customized for game board) */
+.button {
+  padding: 15px 30px;
   border: none;
-  border-radius: 5px;
-  font-size: 1.1em;
+  border-radius: 10px;
+  font-size: 1.2em;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-  min-width: 120px;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+  flex-grow: 1; /* Allow buttons to grow and fill space */
+  min-width: 120px; /* Ensure a minimum width */
 }
 
-.action-buttons .play-button {
-  background-color: #7289da;
-  color: white;
-}
-
-.action-buttons .play-button:hover {
-  background-color: #677bc4;
+.button:hover:not(:disabled) {
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.action-buttons .pass-button {
-  background-color: #f04747; /* Red for pass/danger */
-  color: white;
-}
-
-.action-buttons .pass-button:hover {
-  background-color: #c03d3d;
-  transform: translateY(-2px);
-}
-
-.action-buttons button:disabled {
-  background-color: #4f545c;
+.button:disabled {
+  background-color: #cccccc;
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.6;
+}
+
+/* Specific button styles */
+.play-button {
+  background-color: #2ecc71; /* Green for go/play */
+  color: white;
+}
+.play-button:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+.pass-button {
+  background-color: #3498db; /* Blue for pass */
+  color: white;
+}
+.pass-button:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.leave-room-button {
+  padding: 10px 5px;
+  font-size: 0.8em;
+  background-color: #f1c40f; /* Yellow/Orange as before */
+  color: #333;
+}
+.leave-room-button:hover:not(:disabled) {
+  background-color: #f39c12;
+}
+
+.delete-room-button {
+  background-color: #e74c3c; /* Red for destructive action */
+  color: white;
+}
+.delete-room-button:hover:not(:disabled) {
+  background-color: #c0392b;
+}
+
+/* Optional: Styles for the "Waiting for Paul" text or other game messages */
+.game-message {
+  font-size: 1.4em;
+  color: #555;
+  margin-top: 20px;
+  font-style: italic;
 }
 
 /* --- Rankings / Game Over Section --- */
@@ -652,9 +722,6 @@
 .start-game-button-container {
   margin-top: 30px;
   padding: 20px;
-  background-color: #2c2f33;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
 }
 
 .start-game-button {

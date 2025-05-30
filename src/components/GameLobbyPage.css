@@ -1,110 +1,233 @@
 .game-lobby-page-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 30px;
-  background-color: #2c2f33;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: var(
+    --background-color
+  ); /* Assuming you have a CSS variable for this */
+  color: var(--text-color); /* Assuming you have a CSS variable for this */
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .game-lobby-page-container h2 {
-  color: #fff;
+  color: var(--brand-red); /* Or another highlight color */
   margin-bottom: 30px;
-  font-size: 1.8em;
-  letter-spacing: 1px;
+  font-size: 2.5em;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.join-game-form .form-group {
-  margin-bottom: 25px;
-  text-align: left;
-}
-
-.join-game-form label {
-  display: block;
-  color: #b9bbbe;
-  font-size: 0.9em;
-  font-weight: bold;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
-
-.join-game-form .form-input {
+.tabs-container {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #444;
   width: 100%;
-  padding: 12px 15px;
-  background-color: #202225;
-  border: 1px solid #4f545c;
-  border-radius: 5px;
-  color: #dcddde;
-  font-size: 1.1em;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  max-width: 400px;
 }
 
-.join-game-form .form-input::placeholder {
-  color: #6a6e73;
-}
-
-.join-game-form .form-input:focus {
-  outline: none;
-  border-color: #7289da;
-  box-shadow: 0 0 0 2px rgba(114, 137, 218, 0.5);
-}
-
-.join-game-form .play-button {
-  padding: 15px 20px;
-  background-color: #7289da;
-  color: white;
+.tab-button {
+  flex: 1;
+  padding: 10px 15px;
   border: none;
-  border-radius: 5px;
-  font-size: 1.2em;
-  font-weight: bold;
+  background-color: #3a3f47;
+  color: #f8f8f2;
+  font-size: 1.1em;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-  margin-top: 20px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  border-radius: 5px 5px 0 0;
+  margin: 0 2px; /* Small gap between buttons */
 }
 
-.join-game-form .play-button:hover {
-  background-color: #677bc4;
-  transform: translateY(-2px);
+.tab-button:hover:not(.active) {
+  background-color: #4a4f57;
 }
 
-.join-game-form .play-button:active {
-  transform: translateY(0);
+.tab-button.active {
+  background-color: #61dafb; /* Active tab color */
+  color: #282c34;
+  font-weight: bold;
+  border-bottom: 2px solid #61dafb; /* Highlight active tab */
+  padding-bottom: 12px; /* Adjust for border */
 }
 
-.error-message {
-  color: #ff4d4f;
-  font-size: 0.9em;
-  margin-top: -15px;
-  margin-bottom: 15px;
+.tab-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #555;
+  color: #bbb;
+}
+
+.tab-content {
+  background-color: #333;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 }
 
-.button-group {
+.form-section {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 15px;
+}
+
+h2 {
+  color: #f8f8f2;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+.form-group {
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #bbb;
+}
+
+.form-group input,
+.form-group select {
+  width: calc(100% - 20px); /* Adjust for padding */
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background-color: #444;
+  color: #f8f8f2;
+  font-size: 1em;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #61dafb;
+  box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.3);
+}
+
+button[type="submit"] {
+  background-color: #28a745; /* Green for submit */
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease;
   margin-top: 20px;
 }
 
-.button-group .play-button {
-  flex: 1;
-  width: auto;
+button[type="submit"]:hover:not(:disabled) {
+  background-color: #218838;
 }
 
-.button-group .create-button {
-  background-color: #4caf50;
+button[type="submit"]:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 
-.button-group .create-button:hover {
-  background-color: #45a049;
+.divider {
+  width: 80%;
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0),
+    var(--border-color),
+    rgba(0, 0, 0, 0)
+  );
+  margin: 30px 0;
 }
 
-.button-group .join-button {
-  background-color: #008cba;
+/* Lobbies Grid Specific Styles */
+.lobbies-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(280px, 1fr)
+  ); /* Responsive grid */
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px; /* Max width for the grid container */
+  margin-top: 20px;
 }
 
-.button-group .join-button:hover {
-  background-color: #007bb5;
+.lobby-card {
+  background-color: var(
+    --lobby-card-background
+  ); /* Lighter background for cards */
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  border: 1px solid var(--border-color-light);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lobby-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.lobby-card h4 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.lobby-card p {
+  margin: 5px 0;
+  color: var(--text-color);
+}
+
+.lobby-status {
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: inline-block;
+  margin-top: 10px;
+  color: white; /* Default text color for status */
+}
+
+.lobby-status.waiting {
+  background-color: var(--status-waiting-bg); /* e.g., #28a745 (green) */
+}
+.lobby-status.in-progress {
+  background-color: var(
+    --status-in-progress-bg
+  ); /* e.g., #ffc107 (yellow/orange) */
+  color: var(--text-color-dark); /* Darker text for light backgrounds */
+}
+.lobby-status.finished {
+  background-color: var(--status-finished-bg); /* e.g., #6c757d (gray) */
+}
+
+.join-lobby-list-button {
+  background-color: var(--brand-green);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.join-lobby-list-button:hover {
+  background-color: var(--brand-green-dark);
+}
+
+.join-lobby-list-button:disabled {
+  background-color: var(--disabled-color);
+  cursor: not-allowed;
 }
