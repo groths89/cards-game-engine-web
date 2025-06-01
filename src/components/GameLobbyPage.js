@@ -84,7 +84,7 @@ function GameLobbyPage() {
 
     return (
         <div className="game-lobby-page-container">
-            <h2>Join or Create Room for {gameType ? gameType.toUpperCase() : 'Game'}</h2>
+            <h2>Join or Create Room for {gameType ? gameType.charAt(0).toUpperCase() + gameType.slice(1).toLowerCase() : 'Game'}</h2>
 
             {error && <p className="error-message">{error}</p>}
 

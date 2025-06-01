@@ -92,12 +92,12 @@ const AppHeader = () => {
       </nav>
         {isActualGamePage && ( // Show game/lobby specific title
           <h2 className="game-board-title">
-            {displayGameType ? displayGameType.toUpperCase() + ' Game Board' : 'Game Board'}
+            {displayGameType ? displayGameType.charAt(0).toUpperCase() + displayGameType.slice(1).toLowerCase() + ' Game Board' : 'Game Board'}
           </h2>
         )}
         {isLobbyPage && ( // Show game/lobby specific title
           <h2 className="game-board-title">
-            {displayGameType ? displayGameType.toUpperCase() + ' Lobby' : 'Lobby'}
+            {displayGameType ? displayGameType.charAt(0).toUpperCase() + displayGameType.slice(1).toLowerCase() + ' Lobby' : 'Lobby'}
           </h2>
         )}
         {!isActualGamePage && !isLobbyPage && ( // Show generic app title

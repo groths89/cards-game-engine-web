@@ -7,6 +7,7 @@ import Hand from "../hands/Hand";
 function AssholeGamePage() {
     const { roomCode: paramRoomCode, gameType } = useParams();
     const location = useLocation();
+     const playerIdFromLocationState = location.state?.playerId;
 
     // Retrieve state from navigation if available, otherwise fallback to context
     const initialRoomCode = location.state?.roomCode || paramRoomCode;
@@ -26,7 +27,9 @@ function AssholeGamePage() {
     // Use a ref to store the interval ID
     const intervalRef = useRef(null); // Import useRef from 'react'
 
-    const [loading, setLoading] = useState(true);
+    // This state is crucial for controlling initial render
+    const [isLoadingPage, setIsLoadingPage] = useState(true); // Renamed from 'loading' for clarity
+
     const [selectedCards, setSelectedCards] = useState([]);
     const [minPlayersRequired, setMinPlayersRequired] = useState(0);
     const [maxPlayersAllowed, setMaxPlayersAllowed] = useState(0);
@@ -79,20 +82,22 @@ function AssholeGamePage() {
         });
     };
     
-    useEffect(() => {
+/*     useEffect(() => {
         const fetchGameData = async () => {
-            console.log(`Fetching game state for room: ${localRoomCode}, player: ${localPlayerId}`); // Add this log
-            if (!localRoomCode || !localPlayerId) {
+            console.groupCollapsed("DEBUG: AssholeGamePage - fetchGameData (Polling)"); // Start a collapsible group
+            console.log(`Fetching game state for room: ${paramRoomCode}, player: ${playerIdFromLocationState}`); // Add this log
+            if (!paramRoomCode || !playerIdFromLocationState) {
                 console.error("Cannot fetch game state: roomCode or playerId is missing.");
                 setError("Cannot fetch game state: Missing room ID or player ID.");
                 return;
             }
-            const state = await getGameState(localRoomCode, localPlayerId, gameType);
-            if (state && state.success) {
-                setGameState(state); // Update context state with fetched game state
-            } else if (state) {
-                console.error("API Error:", state.message || state.error); // Log API error
-                setError(state.message || state.error || 'Failed to fetch game state.');
+            const result = await getGameState(paramRoomCode, playerIdFromLocationState, gameType);
+            console.log("  Result from getGameState (from context):", result); // What did getGameState return?
+            if (result && result.success) {
+                setLoading(false)
+            } else if (result) {
+                console.error("API Error:", result.message || result.error); // Log API error
+                setError(result.message || result.error || 'Failed to fetch game state.');
             } else {
                 console.error("Failed to fetch game state: No response from API.");
                 setError('Failed to fetch game state: Network or unknown error.');
@@ -115,7 +120,7 @@ function AssholeGamePage() {
                 clearInterval(intervalRef.current);
             }
         };
-    }, [localRoomCode, localPlayerId, gameType, getGameState, setGameState, setError]);
+    }, [localRoomCode, localPlayerId, gameType, getGameState, setGameState, setError]); */
 
     useEffect(() => {
         // Only update context if we have new values from navigation
@@ -125,12 +130,22 @@ function AssholeGamePage() {
         if (initialPlayerId && initialPlayerId !== playerId) {
             setPlayerId(initialPlayerId); // Update context state
         }
-    }, [initialRoomCode, initialPlayerId, roomCode, playerId, setRoomCode, setPlayerId]);
+        if (gameState) {
+            if (gameState.MIN_PLAYERS !== undefined) {
+                setMinPlayersRequired(gameState.MIN_PLAYERS);
+            }
+            if (gameState.MAX_PLAYERS !== undefined) {
+                setMaxPlayersAllowed(gameState.MAX_PLAYERS);
+            }
+            // Ensure isLoadingPage is false if gameState comes in later for some reason
+            if (isLoadingPage) setIsLoadingPage(false);
+        }
+    }, [initialRoomCode, initialPlayerId, roomCode, playerId, setRoomCode, setPlayerId, gameState, isLoadingPage]);
 
     const handleStartGame = async (event) => {
         event.preventDefault();
         setError('');
-        setLoading(true);
+        setIsLoadingPage(true);
 
         try {
             const response = await fetch('http://127.0.0.1:5000/start_game_round', {
@@ -156,7 +171,7 @@ function AssholeGamePage() {
             setError('Network error: Could not connect to game server to start game.');
             console.error('Start game network error:', error);
         } finally {
-            setLoading(false);
+            setIsLoadingPage(false);
         }
         
 
@@ -164,7 +179,7 @@ function AssholeGamePage() {
 
     const handlePlayCards = async () => {
         setError('');
-        setLoading(true);
+        setIsLoadingPage(true);
         try {
             const response = await fetch('http://127.0.0.1:5000/play_cards', {
                 method: 'POST',
@@ -185,13 +200,13 @@ function AssholeGamePage() {
         } catch (err) {
             setError('Network error playing cards.');
         } finally {
-            setLoading(false);
+            setIsLoadingPage(false);
         }
     };
 
     const handlePassTurn = async () => {
         setError('');
-        setLoading(true);
+        setIsLoadingPage(true);
         try {
             const response = await fetch('http://127.0.0.1:5000/pass_turn', {
                 method: 'POST',
@@ -210,11 +225,11 @@ function AssholeGamePage() {
         } catch (err) {
             setError('Network error passing turn.');
         } finally {
-            setLoading(false);
+            setIsLoadingPage(false);
         }
     };
 
-    if (loading && !gameState) {
+    if (isLoadingPage && !gameState) {
         return <div className="asshole-game-page"><p>Loading game...</p></div>
     }
 
@@ -224,6 +239,17 @@ function AssholeGamePage() {
 
     if (!gameState) {
         return <div className="asshole-game-page"><p>No game data available.</p></div>
+    }
+
+        // --- CRITICAL: Conditional Rendering ---
+    // If the page is still loading or gameState is not yet available, show a loading message
+    if (isLoadingPage || !gameState || !gameState.all_players_data) { // Ensure all_players_data also exists
+        return (
+            <div className="asshole-game-page">
+                <p>Loading game data...</p>
+                {error && <p className="error-message">{error}</p>}
+            </div>
+        );
     }
 
     const currentPlayersInRoom = gameState.num_active_players || [];
@@ -285,14 +311,14 @@ function AssholeGamePage() {
                             <button
                                 onClick={handlePlayCards} // You'll need to create this handler
                                 className="button primary-action play-button"
-                                disabled={!isYourTurn || selectedCards.length === 0 || loading}
+                                disabled={!isYourTurn || selectedCards.length === 0 || isLoadingPage}
                             >
                                 PLAY
                             </button>
                             <button
                                 onClick={handlePassTurn} // You'll need to create this handler
                                 className="button primary-action pass-button"
-                                disabled={!isYourTurn || pileCards.length === 0 || loading} // Can't pass on empty pile
+                                disabled={!isYourTurn || pileCards.length === 0 || isLoadingPage} // Can't pass on empty pile
                             >
                                 PASS
                             </button>

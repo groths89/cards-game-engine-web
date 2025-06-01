@@ -6,8 +6,7 @@ const GameContext = createContext(null);
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
 const callApi = async (endpoint, method = 'GET', data = null) => {
-    const url = new URL(endpoint, API_BASE_URL).toString();
-    console.log("Attempting API Call to:", url, "with method:", method, "and data:", data);
+    const urlObj = new URL(endpoint, API_BASE_URL);
     const options = {
         method: method,
         headers: {
@@ -15,22 +14,22 @@ const callApi = async (endpoint, method = 'GET', data = null) => {
         },
     };
 
-    if (data && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+    if (method.toUpperCase() === 'GET' && data) {
+        Object.keys(data).forEach(key => {
+            urlObj.searchParams.append(key, data[key]);
+        });
+    } else if (data && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
         options.body = JSON.stringify(data);
     }
 
     try {
-        const response = await fetch(url, options);
-        console.log("-> Raw Fetch Response Status:", response.status, response.statusText);
-        console.log("-> Raw Fetch Response Headers (Content-Type):", response.headers.get("content-type"));
-
+        const response = await fetch(urlObj.toString(), options);
         let jsonResponse = {};
         const contentType = response.headers.get("content-type");
 
         if (contentType && contentType.includes("application/json")) {
             try {
                 jsonResponse = await response.json();
-                console.log("-> Parsed JSON Response:", jsonResponse);
             } catch (jsonError) {
                 console.warn(`-> WARN: JSON parsing failed for ${endpoint} (Status: ${response.status}). Error:`, jsonError);
                 jsonResponse = { message: `Malformed JSON response from server or empty body: ${jsonError.message || 'No content'}` };
@@ -49,8 +48,6 @@ const callApi = async (endpoint, method = 'GET', data = null) => {
             console.error(`-> API Call FAIL (HTTP Error): ${errorMessage}. Details:`, jsonResponse);
             return { success: false, status: response.status, message: errorMessage };
         }
-
-        console.log(`-> API Call SUCCESS for ${endpoint}. Status: ${response.status}`);
         return { success: true, ...jsonResponse };
     } catch (error) {
         console.error(`API call to ${endpoint} failed:`, error);
@@ -185,8 +182,8 @@ export const GameProvider = ({ children }) => {
                 setRoomCode(code);
                 setPlayerId(response.player_id);
                 setIsHost(response.is_host || false); // Backend should indicate if host
-                setGameState(response.current_game_state);
-                navigate(`/game/${response.current_game_state.game_type || 'asshole'}/${code}`);
+                setGameState(response);
+                navigate(`/game/${response.game_type || 'asshole'}/${code}`);
                 return response.player_id;
             } else {
                 console.error("Error joining room:", response.message);
@@ -254,7 +251,7 @@ export const GameProvider = ({ children }) => {
                 try {
                     const response = await api.getGameState(roomCode, playerId);
                     if (response.success) {
-                        setGameState(response.game_state);
+                        setGameState(response);
                     } else {
                         console.error("Failed to fetch game state:", response.message);
                         // If room no longer exists or player kicked, reset state
@@ -288,7 +285,7 @@ export const GameProvider = ({ children }) => {
         isLoadingGame,
         error,
         setError,
-        updateGameState: setGameState,
+        setGameState,
         createNewRoom,
         joinExistingRoom,
         leaveRoom,
@@ -296,7 +293,7 @@ export const GameProvider = ({ children }) => {
         getGameState,
     }), [
         roomCode, playerId, isHost, gameState, isLoadingGame, error,
-        createNewRoom, joinExistingRoom, leaveRoom, deleteRoom, getGameState 
+        createNewRoom, joinExistingRoom, leaveRoom, deleteRoom, getGameState, setGameState 
     ]);
 
     return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
