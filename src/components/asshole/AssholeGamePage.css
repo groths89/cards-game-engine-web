@@ -2,63 +2,62 @@
   display: flex;
   flex-direction: column; /* Stack elements vertically */
   align-items: center; /* Center content horizontally */
-  padding: 20px;
+  padding: var(--spacing-lg);
   overflow-y: auto;
-  background-color: var(--ui-light-background);
-  color: var(--ui-dark-text);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   position: relative;
 }
 
 .asshole-game-page h2 {
-  margin-bottom: 15px;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
   font-size: 2.2em;
   letter-spacing: 1px;
 }
 
 .asshole-game-page h3 {
-  margin-bottom: 25px;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
   font-size: 1.2em;
 }
 
 .asshole-game-page h2,
 .asshole-game-page h3 {
   text-align: center;
-  padding-top: 60px; /* Adjust as needed to clear both top-left and top-right elements */
-  margin-left: 200px; /* Ensure space on the left for lobby status */
-  margin-right: 200px; /* Ensure space on the right for room code */
   position: relative; /* Ensure h2/h3 are above standard flow, below absolute elements */
   z-index: 5; /* Lower than absolute elements */
 }
 
 .error-message {
-  color: #ff4d4f;
+  color: var(--status-error);
   font-size: 1.1em;
-  margin-top: 20px;
+  margin-top: var(--spacing-md);
   text-align: center;
 }
 
 /* --- Lobby Status Section (Top-Left) --- */
 .lobby-status-section {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: var(--ui-light-background);
-  border: 1px solid var(--ui-border-light);
-  padding: 10px 15px;
-  border-radius: 8px;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  background-color: var(--color-white);
+  border: 1px solid var(--border-light);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-default);
   text-align: left;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 8px var(--shadow-black);
   z-index: 10;
   min-width: 200px;
-  color: var(--ui-dark-text);
+  color: var(--text-on-light);
 }
 
 .lobby-status-section h4 {
   font-family: "Montserrat", sans-serif;
-  color: var(--brand-blue);
+  color: var(--color-dark-text);
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
   font-size: 1.4em;
   text-align: center;
 }
@@ -66,7 +65,7 @@
 .lobby-status-grid {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 10px 15px;
+  gap: var(--spacing-sm) var(--spacing-md);
 }
 
 .lobby-status-row {
@@ -75,32 +74,32 @@
 
 .lobby-label {
   font-weight: 600;
-  color: var(--ui-muted-text);
+  color: var(--text-secondary);
 }
 
 .status-value {
   font-weight: bold;
   font-size: 1.1em;
-  color: var(--ui-dark-text);
+  color: var(--text-on-light);
 }
 
 .status-indicator-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
 }
 
 .player-count-display {
   font-size: 0.8em;
   font-weight: bold;
-  color: #eee;
+  color: var(--text-primary);
   margin: 0;
 }
 
 /* Status Light */
 .status-light-container {
-  position: relative; /* For positioning multiple lights */
-  margin-right: 10px; /* Space between light and name */
+  position: relative;
+  margin-right: var(--spacing-xs);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,7 +110,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #95a5a6; /* Default gray for inactive/unknown */
+  background-color: var(--text-disabled);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -132,140 +131,142 @@
 
 .status-light.active {
   animation: pulse 1.5s infinite ease-in-out;
-  background-color: var(--brand-green); /* Use brand green for active */
-  box-shadow: 0 0 5px var(--brand-green); /* Soft glow when active */
+  background-color: var(--color-vibrant-green);
+  box-shadow: 0 0 5px var(--color-vibrant-green);
 }
 
 .status-light.inactive {
-  background-color: #888; /* Grey for inactive/out of game */
-  box-shadow: 0 0 3px #888;
+  background-color: var(--color-muted-gray);
+  box-shadow: 0 0 3px var(--color-muted-gray);
 }
 
 .status-light.inactive {
-  background-color: #e74c3c; /* Red for inactive/out player */
+  background-color: var(--color-deep-red);
   box-shadow: 0 0 5px rgba(231, 76, 60, 0.7);
 }
 
 .status-light.current-turn-light {
-  position: absolute; /* Overlap or position near active light */
-  width: 8px; /* Smaller for distinct indicator */
+  position: absolute;
+  width: 8px;
   height: 8px;
-  background-color: #ffd700; /* Yellow/Gold for current turn */
-  box-shadow: 0 0 8px #ffd700;
-  top: -2px; /* Adjust position relative to the main status light */
+  background-color: var(--color-gold-yellow);
+  box-shadow: 0 0 8px var(--shadow-gold);
+  top: -2px;
   right: -12px;
 }
 
 /* --- Player Status Sidebar Styles --- */
 
 .player-status-sidebar {
-  position: absolute; /* Position relative to its parent container */
-  top: 220px; /* Adjust as needed, e.g., below game title */
-  left: 20px; /* Position on the left side */
-  width: 250px; /* Fixed width for the sidebar */
-  padding: 15px;
-  background-color: var(--brand-blue);
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  color: var(--ui-light-grey);
+  position: absolute;
+  top: 220px;
+  left: var(--spacing-md);
+  width: 250px;
+  padding: var(--spacing-md);
+  background-color: var(--bg-lobby-card);
+  border-radius: var(--border-radius-default);
+  box-shadow: 0 4px 8px var(--shadow-black);
+  color: var(--text-primary);
   font-size: 0.95em;
-  z-index: 10; /* Ensure it stays above other elements if they overlap */
-  max-height: calc(
-    100vh - 40px
-  ); /* Limit height to viewport, with some margin */
-  overflow-y: auto; /* Enable scrolling if player list gets too long */
+  z-index: 10;
+  max-height: calc(100vh - (2 * var(--spacing-md)));
+  overflow-y: auto;
 }
 
 .player-status-sidebar h3 {
   text-align: center;
-  color: #fff;
-  margin-bottom: 15px;
+  color: var(--color-white);
+  margin-bottom: var(--spacing-md);
 }
 
 .player-status-item {
-  display: flex; /* Use flexbox for internal layout (light + details) */
-  align-items: center; /* Vertically align items */
-  background-color: #3a3a3a; /* Background for each player row */
-  padding: 8px 10px;
-  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-input);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-default);
   font-size: 0.95em;
-  color: #f0f0f0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
+  box-shadow: 0 2px 5px var(--shadow-black);
   transition: background-color 0.2s ease;
 }
 
 .player-status-item.current-player {
-  border: 2px solid #00bfff; /* Highlight current player's own item */
-  background-color: #4a4a4a;
+  border: 2px solid var(--action-primary);
+  background-color: color-mix(
+    in srgb,
+    var(--bg-input) 80%,
+    var(--action-primary) 10%
+  );
 }
 
 /* Scrollbar styling for player-status-sidebar */
 .player-status-sidebar::-webkit-scrollbar {
-  width: 8px;
+  width: var(--spacing-sm);
 }
 
 .player-status-sidebar::-webkit-scrollbar-track {
-  background: #34495e;
-  border-radius: 10px;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-default);
 }
 
 .player-status-sidebar::-webkit-scrollbar-thumb {
-  background: #7f8c8d;
-  border-radius: 10px;
+  background: var(--text-secondary);
+  border-radius: var(--border-radius-default);
 }
 
 .player-status-sidebar::-webkit-scrollbar-thumb:hover {
-  background: #95a5a6;
+  background: var(--text-disabled);
 }
 
 .player-list-grid {
   display: flex;
-  flex-direction: column; /* Stack player items vertically */
-  gap: 10px; /* Space between player items */
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
 .player-item {
-  background-color: #34495e; /* Slightly lighter dark for player item background */
-  color: var(--ui-light-grey);
-  padding: 10px 12px;
-  border-radius: 6px;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-default);
   display: flex;
-  flex-direction: column; /* Stack name, hand size, rank vertically within item */
-  align-items: flex-start; /* Align text to the left */
+  flex-direction: column;
+  align-items: flex-start;
   transition: background-color 0.2s ease, transform 0.1s ease;
-  border: 1px solid var(--ui-border-light); /* Default transparent border */
+  border: 1px solid var(--border-default);
 }
 
 .player-item.you {
-  border-color: var(--brand-green); /* Highlight for the current player (You) */
+  border-color: var(--color-vibrant-green);
   background-color: color-mix(
     in srgb,
-    var(--brand-blue) 90%,
-    var(--brand-green) 10%
-  ); /* Slightly different background for "You" */
+    var(--color-dark-blue-gray) 90%,
+    var(--color-vibrant-green) 10%
+  );
   font-weight: bold;
 }
 
 .player-item:hover {
   background-color: color-mix(
     in srgb,
-    #34495e 90%,
-    var(--ui-light-grey) 10%
-  ); /* Darken on hover */
+    var(--bg-card) 90%,
+    var(--text-primary) 10%
+  );
   transform: translateY(-2px); /* Slight lift on hover */
 }
 
 .player-name-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px; /* Space between status light and name */
-  margin-bottom: 5px; /* Space below name for hand size/rank */
+  gap: var(--spacing-xs); /* Space between status light and name */
+  margin-bottom: var(--spacing-xs); /* Space below name for hand size/rank */
 }
 
 .player-name {
   position: relative;
   font-weight: bold;
-  color: #ecf0f1;
+  color: var(--text-primary);
   margin-bottom: 3px;
 }
 
@@ -280,20 +281,22 @@
 .player-hand-size,
 .player-rank {
   font-size: 0.85em;
-  color: var(--ui-border-light); /* Lighter gray for secondary info */
-  margin-left: 18px; /* Indent to align with player name, past the status light */
+  color: var(--text-secondary); /* Lighter gray for secondary info */
+  margin-left: calc(
+    var(--spacing-md) + var(--spacing-xs)
+  ); /* Indent to align with player name, past the status light */
 }
 
 .player-rank {
   font-style: italic;
-  color: #f1c40f; /* Gold-ish for rank */
+  color: var(--color-gold-yellow); /* Gold-ish for rank */
 }
 
 /* Styling for "No players in room." message */
 .player-status-sidebar p {
-  color: #bdc3c7;
+  color: var(--text-secondary);
   text-align: center;
-  padding: 10px;
+  padding: var(--spacing-sm);
 }
 
 .player-details {
@@ -306,7 +309,7 @@
 .player-rank,
 .player-role {
   font-size: 0.85em;
-  color: #ccc;
+  color: var(--text-secondary);
   margin-bottom: 2px;
 }
 
@@ -315,7 +318,7 @@
   .player-status-sidebar {
     position: static; /* Make it part of the normal flow */
     width: auto; /* Auto width */
-    margin: 10px; /* Add some margin */
+    margin: var(--spacing-md); /* Add some margin */
     max-height: none; /* Remove max-height for smaller screens */
     overflow-y: visible; /* No scrolling */
   }
@@ -332,24 +335,23 @@
 
 /* --- Room Code Display (Top-Right) --- */
 .room-code-display {
-  background-color: color-mix(
-    in srgb,
-    var(--ui-light-background) 90%,
-    var(--ui-dark-text) 5%
-  );
-  padding: 10px 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background-color: var(--color-white);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-default);
+  box-shadow: 0 2px 5px var(--shadow-black);
   z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: var(--spacing-xs);
+  color: var(--text-on-light);
 }
 
 .room-code-label {
   font-size: 0.85em;
-  color: var(--ui-muted-text);
+  color: var(--text-secondary);
   font-weight: normal;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -358,9 +360,9 @@
 .room-code-value {
   font-size: 2.2em;
   font-weight: bold;
-  color: var(--brand-blue);
+  color: var(--color-dark-text);
   letter-spacing: 2px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 2px var(--shadow-black);
 }
 
 /* --- Game Board Area --- */
@@ -369,265 +371,219 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 1200px; /* Limit overall game area width */
-  margin-top: 20px;
+  max-width: 1200px;
+  margin-top: var(--spacing-md); /* Use spacing variable */
 }
 
 .game-board-layout {
-  /* This is the core game area container */
   display: grid;
-  /* Define grid areas for a structured layout: */
-  /*
-      "top-players"       (Players across the top)
-      "left-player main right-player" (Side players and main play area)
-      "controls    main bottom-player-hand" (Controls, main area, and player's hand)
-    */
   grid-template-areas:
     "top-players top-players top-players"
     "left-side   main-area   right-side"
-    "controls    player-hand player-hand"; /* Renamed for clarity: player-hand is now bottom-right */
+    "controls    player-hand player-hand";
 
-  /* Define column and row sizes */
-  grid-template-columns: 1fr 3fr 1fr; /* Example: left side 1fr, middle 3fr, right side 1fr */
-  grid-template-rows: auto 1fr auto; /* Top row auto, middle row takes remaining space, bottom row auto */
+  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-rows: auto 1fr auto;
 
-  width: 95%; /* Adjust as needed, could be fixed width or fluid */
-  max-width: 1400px; /* Max width for large screens */
+  width: 95%;
+  max-width: 1400px;
   height: calc(
-    100vh - 150px
-  ); /* Fill remaining viewport height, adjust for header/footer if any */
-  gap: 20px; /* Space between grid items */
+    100vh - var(--header-height) - (2 * var(--spacing-lg))
+  ); /* Adjust height relative to new header and padding */
+  gap: var(--spacing-md); /* Use spacing variable */
 
   background-color: var(
-    --game-board-background
-  ); /* A distinct background for the board itself */
-  border: 1px solid var(--ui-border-dark);
-  border-radius: 12px; /* Slightly more rounded for the main board */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* More prominent shadow for the board */
-  padding: 20px;
-  box-sizing: border-box; /* Crucial for padding to be included in width/height */
-  position: relative; /* Essential for absolutely positioned elements like player hand */
-  overflow: hidden; /* Hide anything that goes outside the board bounds */
+    --bg-game-board
+  ); /* Distinct background for the board itself */
+  border: 1px solid var(--border-accent); /* Darker border for accents */
+  border-radius: var(--border-radius-default); /* Consistent rounded corners */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  padding: var(--spacing-md); /* Use spacing variable */
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
 }
 
 /* --- Pile Area --- */
 .pile-area {
-  width: 600px; /* Or adjust as needed */
-  height: 200px; /* Or adjust as needed */
+  width: 600px;
+  height: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 1.2em;
-  color: var(--ui-dark-text); /* Ensure text is readable on the background */
+  color: var(--text-on-light); /* Text readable on light background */
 
-  margin-top: 30px;
-  margin-bottom: 30px;
-  padding: 20px; /* Add some padding if content is inside */
+  margin-top: var(--spacing-lg); /* Use spacing variable */
+  margin-bottom: var(--spacing-lg); /* Use spacing variable */
+  padding: var(--spacing-md); /* Use spacing variable */
 
-  background-color: var(
-    --ui-light-background
-  ); /* Use your light background variable */
-  border: 1px solid var(--ui-border-light); /* Use your light border variable */
-  border-radius: 8px; /* Maintain consistent rounded corners */
+  background-color: var(--color-white); /* Use white background for pile area */
+  border: 1px solid var(--border-light); /* Use light border variable */
+  border-radius: var(--border-radius-default);
 
-  /* --- Clean 2D Styling --- */
-
-  /* Subtle box-shadow for a hint of lift, but not 3D */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* A gentle, diffused shadow */
-
-  /* Remove any previous 3D transforms or aggressive shadows if they were applied */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: none;
-  transform-style: flat; /* Or simply remove transform-style */
-
-  /* Ensure no pseudo-elements are creating unwanted 3D effects if you tried that */
-  /* If you used ::before/::after for 3D, remove or comment them out */
-  /*
-    &::before, &::after {
-        content: none;
-    }
-    */
+  transform-style: flat;
 }
 
-/* Optional hover effect */
 .pile-area:hover {
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Slightly more pronounced on hover */
-  transform: translateY(-2px); /* Optional: slight lift on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .pile-area p {
-  color: #b9bbbe;
+  color: var(--text-secondary); /* Muted text for subtle messages */
   font-style: italic;
 }
 
-/* Stacked card effect for the pile */
 .pile-area .card-image {
   position: absolute;
-  width: 70px; /* Adjust card size */
+  width: 70px;
   height: 100px;
-  border: 1px solid #36393f;
-  border-radius: 5px;
+  border: 1px solid var(--border-default); /* Use default border */
+  border-radius: var(--border-radius-default);
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-  background-color: #eee; /* Fallback for card background */
-}
-
-/* More complex stacking might require JS to apply different offsets */
-.pile-area .card-image:nth-child(1) {
-  transform: translate(-2px, -2px) rotate(-1deg);
-  z-index: 1;
-}
-.pile-area .card-image:nth-child(2) {
-  transform: translate(0px, 0px) rotate(1deg);
-  z-index: 2;
-}
-.pile-area .card-image:nth-child(3) {
-  transform: translate(2px, 2px) rotate(-2deg);
-  z-index: 3;
-}
-.pile-area .card-image:nth-child(4) {
-  transform: translate(4px, 4px) rotate(2deg);
-  z-index: 4;
-}
-/* ... and so on for more cards, or just show last few */
-.pile-area .card-image:last-child {
-  position: relative; /* Last card on top, not absolute */
-  transform: none;
-  z-index: 10;
+  background-color: var(--color-off-white); /* Off-white for card background */
 }
 
 /* --- Player Hand Area --- */
 .player-hand-container {
   display: flex;
-  justify-content: center; /* Center the hand horizontally */
-  align-items: flex-end; /* Align cards to the bottom if they have different heights (for fanning) */
-  position: relative; /* For potential absolute positioning of cards if fanning is complex */
-  width: 100%; /* Take full width of its parent */
-  overflow-x: hidden; /* Hide any overflow if cards go too far to the sides during fan */
-  padding: 20px 0; /* Add padding to ensure cards aren't stuck to edges */
-  margin-top: 40px; /* Space from elements above */
-  perspective: 1000px; /* For 3D transforms if desired */
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  padding: var(--spacing-md) 0; /* Use spacing variable */
+  margin-top: var(--spacing-lg); /* Use spacing variable */
+  perspective: 1000px;
 }
 
 /* Style for individual cards within the hand */
 .player-hand-container .card {
-  margin-left: -50px; /* Adjust this negative margin to control overlap */
+  margin-left: -50px;
   transition: transform 0.2s ease-out, margin-left 0.2s ease-out,
     z-index 0.1s ease;
   cursor: pointer;
-  position: relative; /* Crucial for z-index and transformations */
-  z-index: 1; /* Default z-index */
-  transform-origin: bottom center; /* Pivot point for rotation */
-  transform: rotate(0deg); /* Default rotation */
+  position: relative;
+  z-index: 1;
+  transform-origin: bottom center;
+  transform: rotate(0deg);
 }
 
 .player-hand-container .card:first-child {
-  margin-left: 0; /* No negative margin for the first card */
+  margin-left: 0;
 }
 
 /* Hover effect: bring card to front, slightly lift, and maybe spread a bit more */
 .player-hand-container .card:hover {
-  z-index: 10; /* Bring hovered card to front */
-  transform: translateY(-20px) scale(1.05); /* Lift and slightly enlarge */
+  z-index: 10;
+  transform: translateY(-20px) scale(1.05);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  /* For fanning, you might adjust margin-left on hover to spread slightly */
 }
 
 /* Active/selected card style */
 .player-hand-container .card.selected {
-  border: 3px solid #3498db; /* Highlight selected card */
-  box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
-  transform: translateY(-30px) scale(1.08); /* Lift more prominently */
+  border: 3px solid var(--action-primary); /* Highlight selected card with primary action color */
+  box-shadow: 0 0 15px
+    color-mix(in srgb, var(--action-primary) 70%, transparent); /* Dynamic shadow */
+  transform: translateY(-30px) scale(1.08);
   z-index: 15;
 }
 
 /* Individual card styling */
 .card-image {
-  width: 80px; /* Standard card width */
-  height: 110px; /* Standard card height */
-  background-color: #eee; /* Light background for card image */
-  border: 1px solid #4f545c;
-  border-radius: 5px;
+  width: 80px;
+  height: 110px;
+  background-color: var(
+    --color-off-white
+  ); /* Light background for card image */
+  border: 1px solid var(--border-default);
+  border-radius: var(--border-radius-default);
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
-  display: flex; /* For centering text if no image */
+  display: flex;
   justify-content: center;
   align-items: center;
-  color: #36393f; /* Dark text for card values */
+  color: var(--color-dark-text); /* Dark text for card values */
   font-weight: bold;
   font-size: 0.9em;
-  position: relative; /* For selected state */
+  position: relative;
 }
 
 .card-image img {
   max-width: 100%;
   max-height: 100%;
   display: block;
-  object-fit: contain; /* Ensure image fits */
+  object-fit: contain;
 }
 
-/* If no image, display card value (e.g., "AS", "2H") */
 .card-image.no-image {
-  background-color: #f7f7f7;
-  color: #333;
+  background-color: var(--color-white);
+  color: var(--color-dark-text);
   font-size: 1em;
 }
 
 .card-image.selected {
-  transform: translateY(-10px); /* Lift selected card */
-  box-shadow: 0 5px 15px rgba(114, 137, 218, 0.6);
-  border-color: #7289da;
+  transform: translateY(-10px);
+  box-shadow: 0 5px 15px
+    color-mix(in srgb, var(--action-primary) 60%, transparent);
+  border-color: var(--action-primary);
 }
 
 /* --- Action Buttons --- */
-/* NEW: Styles for the top bar container */
 .game-top-bar {
-  display: flex; /* Make it a flex container */
-  justify-content: space-between; /* Pushes content to the ends */
-  align-items: flex-start; /* Aligns items to the top if they have different heights */
-  flex-wrap: wrap; /* Allows items to wrap on smaller screens if they don't fit */
-  margin-bottom: 20px; /* Space between the top bar and content below */
-  padding: 0 10px; /* Some horizontal padding to keep content off edges */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md); /* Use spacing variable */
+  padding: 0 var(--spacing-sm); /* Use spacing variable */
+  width: 100%; /* Ensure it spans the full width */
 }
 
 .game-board-actions {
   display: flex;
-  flex-direction: column; /* Keep buttons stacked vertically within their group */
-  align-items: flex-end; /* Align buttons to the right side of their container */
-  margin-top: 0; /* Remove top margin as game-top-bar handles spacing */
-  margin-bottom: 0; /* Remove bottom margin */
-  gap: 10px; /* Reduced gap between button groups */
-  flex-shrink: 0; /* Prevent buttons from shrinking if space is tight */
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 0;
+  margin-bottom: 0;
+  gap: var(--spacing-sm); /* Use spacing variable */
+  flex-shrink: 0;
 }
 
 .player-turn-actions {
   display: flex;
-  gap: 20px; /* Space between Play and Pass buttons */
+  gap: var(--spacing-lg); /* Use spacing variable */
   justify-content: center;
   align-items: flex-end;
   width: 100%;
-  max-width: 400px; /* Limit width for these primary buttons */
+  max-width: 400px;
 }
 
 .room-management-actions {
   display: flex;
-  gap: 15px; /* Space between Leave and Delete buttons */
+  gap: var(--spacing-md); /* Use spacing variable */
   justify-content: center;
   width: 100%;
-  max-width: 400px; /* Limit width for these buttons */
+  max-width: 400px;
 }
 
-/* Base button style (similar to GameLobbyPage, but can be customized for game board) */
+/* Base button style */
 .button {
-  padding: 15px 30px;
+  padding: var(--spacing-md) var(--spacing-lg); /* Use spacing variables */
   border: none;
-  border-radius: 10px;
+  border-radius: var(--border-radius-default);
   font-size: 1.2em;
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.1s ease,
     box-shadow 0.3s ease;
-  flex-grow: 1; /* Allow buttons to grow and fill space */
-  min-width: 120px; /* Ensure a minimum width */
+  flex-grow: 1;
+  min-width: 120px;
+  color: var(--color-white); /* Default button text color is white */
 }
 
 .button:hover:not(:disabled) {
@@ -636,69 +592,76 @@
 }
 
 .button:disabled {
-  background-color: #cccccc;
+  background-color: var(--action-disabled); /* Consistent disabled color */
   cursor: not-allowed;
   opacity: 0.6;
+  color: var(--text-disabled); /* Make disabled text also use the variable */
 }
 
 /* Specific button styles */
 .play-button {
-  background-color: #2ecc71; /* Green for go/play */
-  color: white;
+  background-color: var(--color-vibrant-green); /* Green for go/play */
 }
 .play-button:hover:not(:disabled) {
-  background-color: #27ae60;
+  background-color: var(--action-accent-dark); /* Darker green on hover */
 }
 
 .pass-button {
-  background-color: #3498db; /* Blue for pass */
-  color: white;
+  background-color: var(--action-primary); /* Blue for pass */
 }
 .pass-button:hover:not(:disabled) {
-  background-color: #2980b9;
+  background-color: var(--action-hover); /* Darker blue on hover */
 }
 
 .leave-room-button {
-  padding: 10px 5px;
+  padding: var(--spacing-sm) var(--spacing-xs); /* Adjust padding with spacing vars */
   font-size: 0.8em;
-  background-color: #f1c40f; /* Yellow/Orange as before */
-  color: #333;
+  background-color: var(--color-gold-yellow); /* Yellow/Orange */
+  color: var(--text-on-light); /* Dark text on yellow */
 }
 .leave-room-button:hover:not(:disabled) {
-  background-color: #f39c12;
+  background-color: color-mix(
+    in srgb,
+    var(--color-gold-yellow) 90%,
+    black
+  ); /* Darken yellow on hover */
 }
 
 .delete-room-button {
-  background-color: #e74c3c; /* Red for destructive action */
-  color: white;
+  background-color: var(--color-deep-red); /* Red for destructive action */
 }
 .delete-room-button:hover:not(:disabled) {
-  background-color: #c0392b;
+  background-color: color-mix(
+    in srgb,
+    var(--color-deep-red) 90%,
+    black
+  ); /* Darken red on hover */
 }
 
 /* Optional: Styles for the "Waiting for Paul" text or other game messages */
 .game-message {
   font-size: 1.4em;
-  color: #555;
-  margin-top: 20px;
+  color: var(--text-secondary); /* Muted text for game messages */
+  margin-top: var(--spacing-md); /* Use spacing variable */
   font-style: italic;
 }
 
 /* --- Rankings / Game Over Section --- */
 .rankings-section {
-  margin-top: 40px;
-  background-color: #2c2f33;
-  padding: 25px;
-  border-radius: 10px;
+  margin-top: var(--spacing-lg); /* Use spacing variable */
+  background-color: var(--bg-card); /* Dark background for rankings */
+  padding: var(--spacing-lg); /* Use spacing variable */
+  border-radius: var(--border-radius-default);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
   text-align: center;
   width: 80%;
   max-width: 500px;
+  color: var(--text-primary); /* Light text on dark background */
 }
 
 .rankings-section h3 {
-  color: #7289da;
-  margin-bottom: 20px;
+  color: var(--action-primary); /* Primary action color for ranking heading */
+  margin-bottom: var(--spacing-md); /* Use spacing variable */
 }
 
 .rankings-list {
@@ -709,9 +672,9 @@
 
 .rankings-list li {
   font-size: 1.1em;
-  padding: 8px 0;
-  border-bottom: 1px solid #36393f;
-  color: #dcddde;
+  padding: var(--spacing-xs) 0; /* Use spacing variable */
+  border-bottom: 1px solid var(--border-default); /* Use border variable */
+  color: var(--text-primary); /* Consistent text color */
 }
 
 .rankings-list li:last-child {
@@ -720,16 +683,16 @@
 
 /* Start Game Button (only visible in lobby state) */
 .start-game-button-container {
-  margin-top: 30px;
-  padding: 20px;
+  margin-top: var(--spacing-lg); /* Use spacing variable */
+  padding: var(--spacing-md); /* Use spacing variable */
 }
 
 .start-game-button {
-  padding: 15px 30px;
-  background-color: #4caf50; /* Green for start */
-  color: white;
+  padding: var(--spacing-md) var(--spacing-lg); /* Use spacing variables */
+  background-color: var(--status-success); /* Green for start */
+  color: var(--color-white);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--border-radius-default);
   font-size: 1.3em;
   font-weight: bold;
   cursor: pointer;
@@ -737,14 +700,15 @@
 }
 
 .start-game-button:hover {
-  background-color: #45a049;
+  background-color: var(--action-accent-dark); /* Darker green on hover */
   transform: translateY(-2px);
 }
 
 .start-game-button:disabled {
-  background-color: #4f545c;
+  background-color: var(--action-disabled); /* Consistent disabled color */
   cursor: not-allowed;
   opacity: 0.7;
+  color: var(--text-disabled); /* Make disabled text also use the variable */
 }
 
 /* Responsive adjustments */
@@ -753,15 +717,16 @@
     font-size: 1.8em;
   }
 
-  .player-info-container {
-    flex-direction: column;
-    align-items: center;
-  }
+  /* Assuming player-info-container and player-card are defined elsewhere or not used here directly */
+  /* .player-info-container {
+        flex-direction: column;
+        align-items: center;
+    }
 
-  .player-card {
-    width: 80%;
-    max-width: 200px;
-  }
+    .player-card {
+        width: 80%;
+        max-width: 200px;
+    } */
 
   .your-hand-container,
   .pile-area,
@@ -769,12 +734,15 @@
     width: 95%;
   }
 
-  .action-buttons {
+  /* Renamed action-buttons to player-turn-actions / room-management-actions */
+  .player-turn-actions,
+  .room-management-actions {
     flex-direction: column;
-    gap: 10px;
+    gap: var(--spacing-sm); /* Use spacing variable */
   }
 
-  .action-buttons button {
+  .player-turn-actions button,
+  .room-management-actions button {
     width: 100%;
   }
 }

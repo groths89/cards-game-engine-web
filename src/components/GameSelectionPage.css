@@ -6,7 +6,7 @@
 .game-selection-page h2 {
   font-size: 2.5em;
   margin-bottom: 40px;
-  color: #444;
+  color: var(--text-primary);
 }
 
 .game-list {
@@ -18,12 +18,12 @@
 }
 
 .game-card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   width: 280px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px var(--shadow-black);
   text-align: left;
-  background-color: #fff;
+  background-color: var(--bg-card);
   display: flex;
   flex-direction: column; /* Stack image and details vertically */
   transition: transform 0.2s ease-in-out; /* Smooth hover effect */
@@ -43,19 +43,19 @@
 
 .game-card h3 {
   margin-top: 0;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .game-card p {
-  color: #888;
+  color: var(--text-primary);
   font-size: 0.9em;
   margin-bottom: 20px;
 }
 
 .game-card .play-button {
   display: inline-block;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--action-primary);
+  color: var(--text-primary);
   padding: 10px 15px;
   border-radius: 5px;
   text-decoration: none;
@@ -63,7 +63,7 @@
 }
 
 .game-card .play-button:hover {
-  background-color: #0056b3;
+  background-color: var(--action-hover);
 }
 
 .game-card:hover {
@@ -74,7 +74,7 @@
   width: 100%;
   height: 180px; /* Fixed height for thumbnails */
   object-fit: cover; /* Cover the area, cropping if necessary */
-  border-bottom: 1px solid #eee; /* Separator below image */
+  border-bottom: 1px solid var(--border-default); /* Separator below image */
 }
 
 .game-details {
@@ -88,13 +88,13 @@
   font-size: 1.5em;
   margin-top: 0;
   margin-bottom: 10px;
-  color: #555;
+  color: var(--text-primary);
 }
 
 .game-details p {
   font-size: 0.95em;
   line-height: 1.5;
-  color: #666;
+  color: var(--text-primary);
   margin-bottom: 20px;
   flex-grow: 1; /* Allow paragraph to take space if needed */
 }
@@ -109,8 +109,8 @@
 
 /* Button Styles */
 .button {
-  background-color: #007bff; /* Primary blue for buttons */
-  color: #fff;
+  background-color: var(--action-primary); /* Primary blue for buttons */
+  color: var(--text-primary);
   border: none;
   padding: 10px 15px;
   border-radius: 5px;
@@ -123,11 +123,11 @@
 }
 
 .button:hover:not(:disabled) {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: var(--action-hover); /* Darker blue on hover */
 }
 
 .button:disabled {
-  background-color: #cccccc;
+  background-color: var(--text-disabled);
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -139,7 +139,7 @@
 }
 
 .game-card.coming-soon .button {
-  background-color: #888; /* Grey out the button */
+  background-color: var(--status-info); /* Grey out the button */
   cursor: not-allowed;
 }
 

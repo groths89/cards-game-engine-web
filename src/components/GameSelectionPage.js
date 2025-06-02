@@ -12,23 +12,6 @@ function GameSelectionPage() {
         navigate(`/lobby/${gameType}`);
     };
 
-    const handleCreateGame = (gameType) => {
-        console.log(`Creating a new ${gameType} game... (Future functionality)`);
-        // In a real application, this would trigger a modal
-        // or navigate to a game creation page/form.
-        // For now, let's navigate to the lobby as if a new game was created.
-        // You might generate a room code here and pass it.
-        alert(`Feature coming soon: Create new ${gameType} game!`);
-        // Example: navigate(`/lobby/${gameType}?newGame=true`);
-    };
-
-    const handleJoinGame = (gameType) => {
-        console.log(`Joining an existing ${gameType} game... (Future functionality)`);
-        // In a real application, this would trigger a modal to ask for a room code
-        alert(`Feature coming soon: Join existing ${gameType} game!`);
-        // Example: navigate(`/join-game/${gameType}`);
-    };
-
     return (
         <div className="game-selection-page">
             <h2>Select a Game</h2>

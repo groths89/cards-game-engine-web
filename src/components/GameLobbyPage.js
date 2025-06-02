@@ -173,7 +173,7 @@ function GameLobbyPage() {
                 <div className="lobbies-grid">
                     {lobbies.map((lobby) => (
                         <div key={lobby.room_code} className="lobby-card small-card">
-                            <h4>Room: {lobby.room_code}</h4>
+                            <h4>{gameType ? gameType.charAt(0).toUpperCase() + gameType.slice(1).toLowerCase() : 'Game'}</h4>
                             <p>Game: {lobby.game_type ? lobby.game_type.toUpperCase() : 'N/A'}</p>
                             <p>Host: {lobby.host_name}</p>
                             <p>Players: {lobby.current_players} / {lobby.max_players}</p>

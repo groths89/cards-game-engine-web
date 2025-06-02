@@ -1,64 +1,80 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@700&display=swap");
 
 :root {
-  /* Brand Colors */
-  --brand-blue: #2c3e50; /* Deep Blue-Grey */
-  --brand-green: #2ecc71; /* Vibrant Green */
-  --brand-gold: #f1c40f; /* Gold/Yellow */
-  --brand-red: #e74c3c; /* A nice red for card suits */
+  /* Base Colors - Your Core Palette */
+  --color-dark-blue-gray: #2c3e50; /* Primary background, deep accents */
+  --color-vibrant-green: #2ecc71; /* Primary accent, success */
+  --color-gold-yellow: #f1c40f; /* Secondary accent, warning */
+  --color-deep-red: #e74c3c; /* Error, danger, card suits (Hearts/Diamonds) */
+  --color-light-gray: #ecf0f1; /* Primary text on dark, light backgrounds */
+  --color-muted-gray: #bdc3c7; /* Secondary text, borders */
+  --color-dark-text: #34495e; /* Text on light backgrounds */
+  --color-white: #ffffff; /* Pure white */
+  --color-off-white: #fdfdfd; /* Very light background for specific elements (like game board) */
 
-  /* UI Neutrals */
-  --ui-white-background: #ffffff;
-  --ui-light-grey: #ecf0f1; /* Light grey for text on dark backgrounds */
-  --ui-muted-grey: #bdc3c7; /* Muted grey for borders/secondary text */
-  --ui-dark-text: #34495e; /* Dark text for light backgrounds */
-  --ui-muted-text: #7f8c8d; /* Muted text for labels */
+  /* Global Backgrounds */
+  --bg-page: var(--color-dark-blue-gray); /* Consistent page background */
+  --bg-card: #34495e; /* Background for game cards (slightly darker than page) */
+  --bg-lobby-card: #465a71; /* Background for lobby specific cards/elements */
+  --bg-input: #44586c; /* Background for input fields */
+  --bg-game-board: var(
+    --color-off-white
+  ); /* Specific background for the actual game play area (if different from page) */
+  --bg-error-overlay: rgba(
+    231,
+    76,
+    60,
+    0.2
+  ); /* Transparent background for error messages */
 
-  --ui-border-light: #dbe4ee; /* Light border color */
-  --ui-border-dark: #b0c4de; /* Darker border for accents */
-  --border-color: #3d516d;
-  --border-color-dark: #2c3e50;
+  /* Text Colors */
+  --text-primary: var(
+    --color-light-gray
+  ); /* Default text color on dark backgrounds */
+  --text-secondary: var(--color-muted-gray); /* Muted/less important text */
+  --text-on-light: var(
+    --color-dark-text
+  ); /* Text color when used on light backgrounds */
+  --text-disabled: #bdc3c7; /* Text color for disabled elements */
 
-  /* RGBA variants for shadows (adjust if needed for a light background) */
-  --brand-green-rgba-shadow: rgba(
-    46,
-    204,
-    113,
-    0.5
-  ); /* Slightly less opaque shadow */
-  --brand-gold-rgba-shadow: rgba(
-    241,
-    196,
-    15,
-    0.5
-  ); /* Slightly less opaque shadow */
+  /* Border Colors */
+  --border-default: #3d516d; /* Default border color */
+  --border-accent: #b0c4de; /* Accent border for UI elements */
+  --border-light: #dbe4ee; /* Light border for light backgrounds */
 
-  --background-color: #2c3e50; /* Dark blue-gray */
-  --card-background-color: #34495e; /* Slightly darker */
-  --lobby-card-background: #465a71; /* Another shade for lobby cards */
-  --text-color: #ecf0f1; /* Light gray */
-  --text-color-light: #bdc3c7; /* Lighter gray */
-  --text-color-dark: #2c3e50; /* Dark text for light backgrounds */
-  --primary-color: #3498db; /* Blue */
-  --accent-color: #2ecc71; /* Green */
-  --accent-color-dark: #27ae60;
-  --input-background: #44586c;
-  --error-color: #e74c3c;
-  --error-background: rgba(231, 76, 60, 0.2);
-  --disabled-color: #95a5a6;
-  --game-board-background: #fdfdfd; /* A very clean white for the board itself */
+  /* Action/State Colors */
+  --action-primary: #3498db; /* General interactive element color (e.g., buttons) */
+  --action-hover: #2980b9; /* Darker shade for hover state */
+  --action-accent: var(
+    --color-vibrant-green
+  ); /* Secondary action color (e.g., success buttons) */
+  --action-accent-dark: #27ae60; /* Darker shade of accent */
+  --action-disabled: #95a5a6; /* For disabled buttons/elements */
+  --status-success: #28a745; /* e.g., Room status: Waiting */
+  --status-warning: #ffc107; /* e.g., Room status: In Progress */
+  --status-info: #6c757d; /* e.g., Room status: Finished / Default neutral */
+  --status-error: var(--color-deep-red); /* For error messages */
+
+  /* Shadows (derived from base colors) */
+  --shadow-black: rgba(0, 0, 0, 0.1);
+  --shadow-green: rgba(46, 204, 113, 0.5);
+  --shadow-gold: rgba(241, 196, 15, 0.5);
+
+  /* Layout / Dimensions */
   --header-height: 90px; /* Example, adjust to your actual header height */
-  --status-waiting-bg: #28a745; /* Bootstrap Green */
-  --status-in-progress-bg: #ffc107; /* Bootstrap Yellow */
-  --status-finished-bg: #6c757d; /* Bootstrap Gray */
+  --border-radius-default: 8px; /* Common border-radius */
+  --spacing-xs: 4px; /* Smallest spacing unit */
+  --spacing-sm: 8px; /* Small spacing */
+  --spacing-md: 16px; /* Medium spacing */
+  --spacing-lg: 24px; /* Large spacing */
 }
 
 /* Apply background to body/html or main app container */
 body {
   margin: 0;
   font-family: "Lato", sans-serif;
-  background-color: var(--ui-dark-background);
-  color: var(--ui-light-grey);
+  background-color: var(--bg-page);
+  color: var(---text-primary);
 }
 
 h1,
@@ -76,7 +92,7 @@ h6 {
 .app-title {
   font-family: "Montserrat", sans-serif;
   font-weight: 700;
-  color: var(--brand-blue); /* Or another strong brand color */
+  color: var(--color-dark-text); /* Or another strong brand color */
   font-size: 2.2em;
   text-align: center;
   margin: 0; /* Remove default margin */
@@ -92,12 +108,61 @@ h6 {
 }
 
 .app-header {
-  display: flex;
+  background-color: var(--color-white); /* Light background for header */
+  color: var(--text-on-light); /* Dark text for header content */
+  min-height: var(--header-height);
+  padding: 0 var(--spacing-md); /* Add some padding on the sides */
+  box-shadow: 0 2px 5px var(--shadow-black);
+  z-index: 1000;
+
+  /* --- FLEXBOX FOR LAYOUT --- */
+  display: flex; /* Make it a flex container */
+  align-items: center; /* Vertically center items */
+  justify-content: space-between; /* Pushes first item left, last item right, distributes space */
+  width: 100%; /* Ensure it takes full width */
   flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-  margin-top: 1rem;
-  width: 100%;
+}
+
+/* For the logo and nav group */
+.app-header .logo-and-nav {
+  display: flex; /* Make this group a flex container too */
+  align-items: center; /* Vertically center logo and nav items */
+  gap: var(--spacing-md); /* Space between logo and nav */
+  flex-grow: 1; /* Allows it to grow and take available space */
+  justify-content: center; /* Center the logo and nav within their flexible space */
+}
+
+/* Specific styles for elements if needed */
+.app-header .logo {
+  /* Styles for your logo (e.g., img or h1) */
+  font-size: 1.8em; /* Example */
+  font-weight: bold;
+}
+
+.app-header .main-nav ul {
+  list-style: none; /* Remove bullet points */
+  margin: 0;
+  padding: 0;
+  display: flex; /* Make nav list items flex for horizontal layout */
+  gap: var(--spacing-lg); /* Space between nav links */
+}
+
+.app-header .main-nav a {
+  color: var(--text-on-light);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.app-header .main-nav a:hover {
+  color: var(--action-primary);
+}
+
+.app-header .status-display,
+.app-header .room-code-display {
+  /* Basic styling for these elements */
+  font-size: 0.9em;
+  color: var(--text-secondary); /* Muted text */
+  white-space: nowrap; /* Prevent wrapping if content is long */
 }
 
 /* NEW: Container for Room Code, Room Buttons, Lobby Status */
