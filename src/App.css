@@ -1,38 +1,136 @@
-.App {
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@700&display=swap");
+
+:root {
+  /* Base Colors - Your Core Palette */
+  --color-dark-blue-gray: #2c3e50;
+  --color-vibrant-green: #2ecc71;
+  --color-gold-yellow: #f1c40f;
+  --color-deep-red: #e74c3c;
+  --color-light-gray: #ecf0f1;
+  --color-muted-gray: #bdc3c7;
+  --color-dark-text: #34495e;
+  --color-white: #ffffff;
+  --color-off-white: #fdfdfd;
+
+  /* Global Backgrounds */
+  --bg-page: var(--color-dark-blue-gray);
+  --bg-card: #34495e;
+  --bg-lobby-card: #465a71;
+  --bg-input: #44586c;
+  --bg-game-board: var(--color-off-white);
+  --bg-error-overlay: rgba(231, 76, 60, 0.2);
+
+  --suit-black: #222222;
+  --suit-red: #d00000;
+
+  /* Text Colors */
+  --text-primary: var(--color-light-gray);
+  --text-secondary: var(--color-muted-gray);
+  --text-on-light: var(--color-dark-text);
+  --text-disabled: #bdc3c7;
+
+  /* Border Colors */
+  --border-default: #3d516d;
+  --border-accent: #b0c4de;
+  --border-light: #dbe4ee;
+
+  /* Action/State Colors */
+  --action-primary: #3498db; /* General interactive element color (e.g., buttons) */
+  --action-hover: #2980b9; /* Darker shade for hover state */
+  --action-accent: var(
+    --color-vibrant-green
+  ); /* Secondary action color (e.g., success buttons) */
+  --action-accent-dark: #27ae60; /* Darker shade of accent */
+  --action-disabled: #95a5a6; /* For disabled buttons/elements */
+  --status-success: #28a745; /* e.g., Room status: Waiting */
+  --status-warning: #ffc107; /* e.g., Room status: In Progress */
+  --status-info: #6c757d; /* e.g., Room status: Finished / Default neutral */
+  --status-error: var(--color-deep-red); /* For error messages */
+
+  /* Shadows */
+  --shadow-black: rgba(0, 0, 0, 0.1);
+  --shadow-green: rgba(46, 204, 113, 0.5);
+  --shadow-gold: rgba(241, 196, 15, 0.5);
+
+  /* Layout / Dimensions */
+  --header-height-desktop: 80px;
+  --header-height-mobile-fixed: 0;
+  --header-height: 90px;
+  --border-radius-default: 8px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 100vh;
+  padding-top: 0;
+  box-sizing: border-box;
+}
+
+.app-main-content {
+  flex-grow: 1;
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-board-title,
+.app-title {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  color: var(--color-dark-text);
+  font-size: 2.2em;
+  text-align: center;
+  margin: 0;
+}
+
+.app {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+/* --- Mobile Styles (@media query) --- */
+@media (max-width: 768px) {
+  .app-container {
+    padding-top: var(--header-height-mobile-fixed);
+    min-height: unset;
   }
-}
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+  .app-main-content {
+    padding: var(--spacing-md);
   }
 }

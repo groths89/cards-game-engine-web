@@ -1,0 +1,396 @@
+.asshole-game-board-wrapper {
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  align-items: center; /* Center content horizontally */
+  flex-grow: 1;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+}
+
+.asshole-game-board-wrapper h2 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  font-size: 2.2em;
+  letter-spacing: 1px;
+}
+
+.asshole-game-board-wrapper h3 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.2em;
+}
+
+.asshole-game-board-wrapper h2,
+.asshole-game-board-wrapper h3 {
+  text-align: center;
+  position: relative; /* Ensure h2/h3 are above standard flow, below absolute elements */
+  z-index: 5; /* Lower than absolute elements */
+}
+
+.error-message {
+  color: var(--status-error);
+  font-size: 1.1em;
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  .asshole-game-board-wrapper {
+    flex-direction: column; /* Stack main content and sidebar vertically */
+    align-items: center;
+  }
+
+  .main-game-content {
+    margin-left: 0; /* Remove left margin if sidebar is no longer absolute */
+  }
+}
+
+/* --- Game Board Area --- */
+.game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: var(--spacing-md);
+}
+
+.game-board-layout {
+  display: grid;
+  grid-template-areas:
+    "controls controls controls"
+    "main-area main-area main-area"
+    "player-hand player-hand player-hand";
+
+  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-rows: auto 1fr auto;
+
+  width: 100%;
+  max-width: 1400px;
+
+  background-color: var(--bg-game-board);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--border-radius-default);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  height: auto;
+  min-height: 400px;
+}
+
+/* --- Pile Area --- */
+.pile-area {
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+
+  background-color: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-default);
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: none;
+  transform-style: flat;
+}
+
+.pile-area:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.pile-area p {
+  color: var(--text-secondary); /* Muted text for subtle messages */
+  font-style: italic;
+}
+
+.pile-area .card-image {
+  position: absolute;
+  width: 70px;
+  height: 100px;
+  border: 1px solid var(--border-default); /* Use default border */
+  border-radius: var(--border-radius-default);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+  background-color: var(--color-off-white); /* Off-white for card background */
+}
+
+/* --- Player Hand Area --- */
+.player-hand-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  padding: var(--spacing-md) 0; /* Use spacing variable */
+  margin-top: var(--spacing-lg); /* Use spacing variable */
+  perspective: 1000px;
+}
+
+/* Style for individual cards within the hand */
+.player-hand-container .card {
+  margin-left: -50px;
+  transition: transform 0.2s ease-out, margin-left 0.2s ease-out,
+    z-index 0.1s ease;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transform-origin: bottom center;
+  transform: rotate(0deg);
+}
+
+.player-hand-container .card:first-child {
+  margin-left: 0;
+}
+
+/* Hover effect: bring card to front, slightly lift, and maybe spread a bit more */
+.player-hand-container .card:hover {
+  z-index: 10;
+  transform: translateY(-20px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Active/selected card style */
+.player-hand-container .card.selected {
+  border: 3px solid var(--action-primary); /* Highlight selected card with primary action color */
+  box-shadow: 0 0 15px
+    color-mix(in srgb, var(--action-primary) 70%, transparent); /* Dynamic shadow */
+  transform: translateY(-30px) scale(1.08);
+  z-index: 15;
+}
+
+/* Individual card styling */
+.card-image {
+  width: 80px;
+  height: 110px;
+  background-color: var(
+    --color-off-white
+  ); /* Light background for card image */
+  border: 1px solid var(--border-default);
+  border-radius: var(--border-radius-default);
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-dark-text); /* Dark text for card values */
+  font-weight: bold;
+  font-size: 0.9em;
+  position: relative;
+}
+
+.card-image img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.card-image.no-image {
+  background-color: var(--color-white);
+  font-size: 1em;
+}
+
+.card-image.selected {
+  transform: translateY(-10px);
+  box-shadow: 0 5px 15px
+    color-mix(in srgb, var(--action-primary) 60%, transparent);
+  border-color: var(--action-primary);
+}
+
+/* --- Action Buttons --- */
+.game-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md); /* Use spacing variable */
+  padding: 0 var(--spacing-sm); /* Use spacing variable */
+  width: 100%; /* Ensure it spans the full width */
+}
+
+.game-board-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 0;
+  margin-bottom: 0;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.player-turn-actions {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xs);
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 400px;
+}
+
+.room-management-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Base button style */
+.button {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-default);
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+  flex-grow: 1;
+  min-width: 120px;
+  color: var(--color-white);
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.button:disabled {
+  background-color: var(--action-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+  color: var(--text-disabled);
+}
+
+.play-button {
+  background-color: var(--color-vibrant-green);
+}
+.play-button:hover:not(:disabled) {
+  background-color: var(--action-accent-dark);
+}
+
+.pass-button {
+  background-color: var(--action-primary);
+}
+.pass-button:hover:not(:disabled) {
+  background-color: var(--action-hover);
+}
+
+.leave-room-button {
+  padding: var(--spacing-sm) var(--spacing-xs);
+  font-size: 0.8em;
+  background-color: var(--color-gold-yellow);
+  color: var(--text-on-light);
+}
+.leave-room-button:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-gold-yellow) 90%, black);
+}
+
+.delete-room-button {
+  background-color: var(--color-deep-red);
+}
+.delete-room-button:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-deep-red) 90%, black);
+}
+
+/* --- Rankings / Game Over Section --- */
+.rankings-section {
+  margin-top: var(--spacing-lg);
+  background-color: var(--bg-card);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-default);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  width: 80%;
+  max-width: 500px;
+  color: var(--text-primary);
+}
+
+.rankings-section h3 {
+  color: var(--action-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.rankings-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rankings-list li {
+  font-size: 1.1em;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-primary);
+}
+
+.rankings-list li:last-child {
+  border-bottom: none;
+}
+
+/* Start Game Button (only visible in lobby state) */
+.start-game-button-container {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+}
+
+.start-game-button {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--status-success);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--border-radius-default);
+  font-size: 1.3em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.start-game-button:hover {
+  background-color: var(--action-accent-dark);
+  transform: translateY(-2px);
+}
+
+.start-game-button:disabled {
+  background-color: var(--action-disabled);
+  cursor: not-allowed;
+  opacity: 0.7;
+  color: var(--text-disabled);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .asshole-game-board-wrapper h2 {
+    font-size: 1.8em;
+  }
+
+  .your-hand-container,
+  .pile-area,
+  .rankings-section {
+    width: 95%;
+  }
+
+  .player-turn-actions,
+  .room-management-actions {
+    flex-direction: row;
+    gap: var(--spacing-xs);
+  }
+
+  .player-turn-actions button,
+  .room-management-actions button {
+    width: 100%;
+  }
+}

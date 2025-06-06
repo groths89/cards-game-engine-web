@@ -1,0 +1,95 @@
+.card {
+  background-color: var(--color-off-white);
+  border-radius: 8px;
+  width: 150px; /* <--- NEW, BIGGER WIDTH */
+  height: 210px; /* <--- NEW, BIGGER HEIGHT (120 * 1.4 = 168) */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Distributes corners and center */
+  padding: 2px; /* Keep padding */
+  font-family: "Arial", sans-serif; /* A cleaner, more standard font */
+  font-weight: bold;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+  position: relative; /* For z-index and hand layout */
+  user-select: none; /* Prevent text selection on cards */
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 3px 3px 8px var(--shadow-black);
+}
+
+.card.selected {
+  transform: translateY(-15px) scale(1.05);
+  box-shadow: 0 0 10px var(--action-primary);
+  border-color: var(--action-primary);
+  z-index: 10;
+}
+
+.card-corner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align rank and suit to the left */
+  line-height: 0.9; /* Tighter line height */
+  padding: 2px; /* Small padding inside corners */
+}
+
+.card-top-left {
+  align-items: flex-start;
+}
+
+.card-bottom-right {
+  align-items: flex-end;
+  transform: rotate(180deg);
+}
+
+/* Central Pips Area */
+.card-center-pips {
+  flex-grow: 1; /* Takes up all available space in the middle */
+  display: flex;
+  flex-wrap: wrap; /* Allow pips to wrap into multiple rows */
+  justify-content: center; /* Center pips horizontally */
+  align-content: center; /* Center rows of pips vertically */
+  flex-direction: column;
+  gap: 4px; /* Space between pips */
+  padding: 4px; /* Padding around the pips area */
+  box-sizing: border-box; /* Include padding in dimensions */
+  overflow: hidden;
+}
+
+.card-pip-symbol {
+  font-size: 1.7em; /* Larger size for central pips */
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 35px; /* Give pips a fixed size for better alignment */
+  height: 35px;
+}
+
+.card-face-rank {
+  font-size: 1.8em; /* Larger font for J, Q, K in the center */
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+}
+
+.card-rank {
+  font-size: 1.3em;
+}
+
+.card-suit-symbol {
+  font-size: 1.2em;
+}
+
+/* Suit colors */
+.card.red-suit {
+  color: var(--suit-red) !important; /* Your defined brand red */
+}
+
+.card.black-suit {
+  color: var(--suit-black) !important; /* Black or very dark grey */
+}
