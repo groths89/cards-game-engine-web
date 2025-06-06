@@ -3,64 +3,65 @@ import { useNavigate } from "react-router-dom";
 
 const GameContext = createContext(null);
 
-const API_BASE_URL = 'http://127.0.0.1:5000';
+const API_BASE_URL = 'http://127.0.0.1:5000'; // Your Flask backend URL
 
+// Centralized API call helper within the context
 const callApi = async (endpoint, method = 'GET', data = null) => {
-    const urlObj = new URL(endpoint, API_BASE_URL);
-    const options = {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    };
-
-    if (method.toUpperCase() === 'GET' && data) {
-        Object.keys(data).forEach(key => {
-            urlObj.searchParams.append(key, data[key]);
-        });
-    } else if (data && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
-        options.body = JSON.stringify(data);
-    }
-
     try {
-        const response = await fetch(urlObj.toString(), options);
-        let jsonResponse = {};
-        const contentType = response.headers.get("content-type");
+        const config = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
 
-        if (contentType && contentType.includes("application/json")) {
-            try {
-                jsonResponse = await response.json();
-            } catch (jsonError) {
-                console.warn(`-> WARN: JSON parsing failed for ${endpoint} (Status: ${response.status}). Error:`, jsonError);
-                jsonResponse = { message: `Malformed JSON response from server or empty body: ${jsonError.message || 'No content'}` };
-            }
+        // Only add body for methods that typically have one (POST, PUT, PATCH)
+        if (method !== 'GET' && method !== 'HEAD' && data) {
+            config.body = JSON.stringify(data);
+        }
+
+        // For GET requests with data, convert data to query parameters
+        if (method === 'GET' && data) {
+            const queryParams = new URLSearchParams(data).toString();
+            endpoint = `${endpoint}?${queryParams}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        const responseData = await response.json();
+
+        // Backend's /game_state and /rooms endpoints return the data directly
+        // without a 'success' key. For these, if response.ok, it's a success.
+        // For other endpoints, they return { success: true/false, message, ... }
+        if (response.ok) {
+            // If the response itself contains a 'success' field, use it.
+            // Otherwise, assume success if response.ok is true.
+            return { success: responseData.success !== undefined ? responseData.success : true, ...responseData };
         } else {
-            // Handle non-JSON responses (like 405 HTML page, or 200 with no content)
-            const textResponse = await response.text(); // Read as text
-            console.warn(`-> WARN: Non-JSON content type received for ${endpoint} (Status: ${response.status}). Content-Type: ${contentType || 'None'}. Response Text:`, textResponse.substring(0, 100) + '...'); // Log a snippet
-            jsonResponse = { message: response.statusText || `Request successful but no JSON content.` };
-            // If it's a 405 or other error, Flask typically sends HTML, so we can't parse it as JSON
-            // We should ensure the message reflects this or provide more details if needed
+            // If response.ok is false, it's an error.
+            // Use the error message from the backend, or a generic one.
+            const errorMessage = responseData.error || responseData.message || `HTTP error! status: ${response.status}`;
+            console.error(`API Error for ${endpoint}:`, errorMessage);
+            return { success: false, error: errorMessage };
         }
-
-        if (!response.ok) {
-            const errorMessage = jsonResponse.message || `HTTP error! Status: ${response.status}. ${response.statusText}`;
-            console.error(`-> API Call FAIL (HTTP Error): ${errorMessage}. Details:`, jsonResponse);
-            return { success: false, status: response.status, message: errorMessage };
-        }
-        return { success: true, ...jsonResponse };
-    } catch (error) {
-        console.error(`API call to ${endpoint} failed:`, error);
-        return { success: false, message: `Network error or unhandled exception during fetch: ${error.message}` };
+    } catch (networkError) {
+        console.error(`Network Error for ${endpoint}:`, networkError);
+        return { success: false, error: `Network error: ${networkError.message}` };
     }
 };
 
+// API functions defined using the internal callApi helper
 const api = {
     createRoom: (gameType, playerName) => callApi('/create_room', 'POST', { game_type: gameType, player_name: playerName }),
     joinRoom: (roomCode, playerName) => callApi('/join_room', 'POST', { room_code: roomCode, player_name: playerName }),
-    getGameState: (roomCode, playerId) => callApi('/game_state', 'GET', { room_code: roomCode, player_id: playerId }), // Assuming POST for get_game_state as per some Flask setups
+    // Backend's /game_state is a GET request and takes room_code, player_id as query params
+    getGameState: (roomCode, playerId) => callApi('/game_state', 'GET', { room_code: roomCode, player_id: playerId }),
     leaveRoom: (roomCode, playerId) => callApi('/leave_room', 'POST', { room_code: roomCode, player_id: playerId }),
     deleteRoom: (roomCode, playerId) => callApi('/delete_room', 'POST', { room_code: roomCode, player_id: playerId }),
+    startGame: (roomCode, playerId) => callApi('/start_game_round', 'POST', { room_code: roomCode, player_id: playerId }),
+    playCards: (roomCode, playerId, cards) => callApi('/play_cards', 'POST', { room_code: roomCode, player_id: playerId, cards: cards }),
+    passTurn: (roomCode, playerId) => callApi('/pass_turn', 'POST', { room_code: roomCode, player_id: playerId }),
+    // Backend's /rooms is a GET request and returns an array directly
+    getActiveRooms: (gameType) => callApi(`/rooms${gameType ? `?game_type=${gameType}` : ''}`, 'GET'),
 };
 
 export const useGame = () => {
@@ -71,16 +72,14 @@ export const useGame = () => {
     return context;
 };
 
-
-
 export const GameProvider = ({ children }) => {
     const navigate = useNavigate();
     const [roomCode, setRoomCode] = useState(() => localStorage.getItem('roomCode') || null);
     const [playerId, setPlayerId] = useState(() => localStorage.getItem('playerId') || null);
     const [isHost, setIsHost] = useState(() => localStorage.getItem('isHost') === 'true' || false);
     const [gameState, setGameState] = useState(null);
-    const [isLoadingGame, setIsLoadingGame] = useState(false);
-    const [error, setError] = useState(null);
+    const [isLoadingGame, setIsLoadingGame] = useState(false); // General loading for context actions
+    const [error, setError] = useState(null); // General error for context actions
 
     // Persist state to localStorage
     useEffect(() => {
@@ -103,29 +102,42 @@ export const GameProvider = ({ children }) => {
         localStorage.setItem('isHost', isHost.toString());
     }, [isHost]);
 
-    const getGameState = useCallback(async (currentRoomCode, currentPlayerId, currentGameType) => {
+    // Function to fetch game state
+    const getGameState = useCallback(async () => {
+        // Only fetch if roomCode and playerId are available
+        if (!roomCode || !playerId) {
+            console.warn("GameContext: Cannot fetch game state, roomCode or playerId missing.");
+            return { success: false, message: "Missing roomCode or playerId." };
+        }
+
         try {
-            // Ensure callApi is robust as per previous steps
-            const response = await api.getGameState(currentRoomCode, currentPlayerId, currentGameType);
+            // Backend's /game_state endpoint expects room_code and player_id as query parameters
+            const response = await api.getGameState(roomCode, playerId);
+
             if (response.success) {
-                // If the game state includes room_code, player_id, etc., you can update here
-                // For polling, you might just update the gameState
-                // setRoomCode(response.room_code); // Consider if you want to update these global states here
-                // setPlayerId(response.player_id);
+                // The backend's /game_state endpoint returns the game state directly
+                // So, `response` here *is* the game state payload.
                 setGameState(response); // Update the main game state
                 setError(null); // Clear any previous errors
                 return { success: true, ...response };
             } else {
-                console.error("Failed to fetch game state:", response.message);
-                setError(response.message || "Failed to fetch game state.");
-                return { success: false, message: response.message || "Failed to fetch game state." };
+                console.error("GameContext: Failed to fetch game state:", response.error);
+                setError(response.error || "Failed to fetch game state.");
+                // If room no longer exists or player kicked, reset state
+                // Note: Backend's /game_state returns 404 for 'Game room not found' or 'Player not found'
+                if (response.error === "Game room not found." || response.error === "Player not found in this game or invalid game state.") {
+                    console.log("GameContext: Room or player invalid, resetting game state.");
+                    resetGameContextState();
+                    navigate('/'); // Redirect to home/lobby
+                }
+                return { success: false, message: response.error || "Failed to fetch game state." };
             }
         } catch (err) {
-            console.error("API error fetching game state:", err);
+            console.error("GameContext: API error fetching game state:", err);
             setError(`Network error: ${err.message}`);
             return { success: false, message: `Network error: ${err.message}` };
         }
-    }, []);
+    }, [roomCode, playerId, navigate]); // Dependencies for useCallback
 
     const resetGameContextState = useCallback(() => {
         setRoomCode(null);
@@ -133,12 +145,13 @@ export const GameProvider = ({ children }) => {
         setIsHost(false);
         setGameState(null);
         setIsLoadingGame(false);
+        setError(null);
         localStorage.removeItem('roomCode');
         localStorage.removeItem('playerId');
         localStorage.removeItem('isHost');
     }, []);
 
-    // --- API Interaction Functions ---
+    // --- API Interaction Functions exposed by context ---
 
     const createNewRoom = useCallback(async (gameType, playerName) => {
         setIsLoadingGame(true);
@@ -148,94 +161,86 @@ export const GameProvider = ({ children }) => {
             console.log("GameContext DEBUG: createRoom API response:", response);
             if (response.success) {
                 setRoomCode(response.room_code);
-                setPlayerId(response.player_id); // This will update state eventually
+                setPlayerId(response.player_id);
                 setIsHost(true);
-                setGameState(response.game_state);
-
-                // Pass player_id and room_code directly in navigation state
-                navigate(`/game/${gameType}/${response.room_code}`, {
-                    state: {
-                        roomCode: response.room_code,
-                        playerId: response.player_id,
-                        isHost: true // You might need this too
-                    }
-                });
-
+                setGameState(response.game_state); // Backend returns game_state directly in response
+                navigate(`/game/${gameType}/${response.room_code}`); // Navigate after state is set
                 return response.player_id;
             } else {
-                console.error("Error creating room:", response.message);
+                setError(response.error || "Failed to create room.");
                 return null;
             }
         } catch (error) {
-            console.error("API error creating room:", error);
+            setError(`Network error: ${error.message}`);
             return null;
         } finally {
             setIsLoadingGame(false);
         }
-    }, [navigate]); // navigate is a dependency
+    }, [navigate]);
 
     const joinExistingRoom = useCallback(async (code, playerName) => {
         setIsLoadingGame(true);
+        setError(null);
         try {
             const response = await api.joinRoom(code, playerName);
             if (response.success) {
                 setRoomCode(code);
                 setPlayerId(response.player_id);
-                setIsHost(response.is_host || false); // Backend should indicate if host
-                setGameState(response);
-                navigate(`/game/${response.game_type || 'asshole'}/${code}`);
+                setIsHost(false); // Joining player is never the host
+                setGameState(response.game_state); // Backend returns game_state directly in response
+                navigate(`/game/${response.game_type || 'asshole'}/${code}`); // Navigate after state is set
                 return response.player_id;
             } else {
-                console.error("Error joining room:", response.message);
+                setError(response.error || "Failed to join room.");
                 return null;
             }
         } catch (error) {
-            console.error("API error joining room:", error);
+            setError(`Network error: ${error.message}`);
             return null;
         } finally {
             setIsLoadingGame(false);
         }
-    }, [navigate]); // navigate is a dependency
-
+    }, [navigate]);
 
     const leaveRoom = useCallback(async () => {
         setIsLoadingGame(true);
+        setError(null);
         try {
-            if (roomCode && playerId) { // Only attempt if we have room/player info
+            if (roomCode && playerId) {
                 const response = await api.leaveRoom(roomCode, playerId);
                 if (response.success) {
                     console.log("Left room successfully on backend.");
                 } else {
-                    console.error("Error leaving room on backend:", response.message);
+                    setError(response.error || "Error leaving room on backend.");
                 }
             } else {
                 console.warn("Attempted to leave room without roomCode or playerId.");
             }
         } catch (error) {
-            console.error("API error leaving room:", error);
+            setError(`Network error: ${error.message}`);
         } finally {
-            // Always reset frontend state and navigate, regardless of backend success/failure
-            resetGameContextState();
-            navigate('/'); // Go back to home page
+            resetGameContextState(); // Always reset frontend state and navigate
+            navigate('/');
             setIsLoadingGame(false);
         }
-    }, [roomCode, playerId, navigate, resetGameContextState]); // Dependencies for useCallback
+    }, [roomCode, playerId, navigate, resetGameContextState]);
 
     const deleteRoom = useCallback(async () => {
         setIsLoadingGame(true);
+        setError(null);
         try {
             if (roomCode && playerId) {
                 const response = await api.deleteRoom(roomCode, playerId);
                 if (response.success) {
                     console.log("Room deleted successfully on backend.");
                 } else {
-                    console.error("Error deleting room on backend:", response.message);
+                    setError(response.error || "Error deleting room on backend.");
                 }
             } else {
                 console.warn("Attempted to delete room without roomCode or playerId.");
             }
         } catch (error) {
-            console.error("API error deleting room:", error);
+            setError(`Network error: ${error.message}`);
         } finally {
             resetGameContextState();
             navigate('/');
@@ -243,57 +248,119 @@ export const GameProvider = ({ children }) => {
         }
     }, [roomCode, playerId, navigate, resetGameContextState]);
 
-    // --- Polling for Game State (if not using WebSockets) ---
+    const startGame = useCallback(async () => {
+        setIsLoadingGame(true);
+        setError(null);
+        try {
+            if (!roomCode || !playerId) {
+                setError("Cannot start game: roomCode or playerId missing.");
+                return;
+            }
+            const response = await api.startGame(roomCode, playerId);
+            if (response.success) {
+                console.log("Game started successfully:", response.message);
+                // Game state will be updated by the polling mechanism
+            } else {
+                setError(response.error || "Failed to start game.");
+            }
+        } catch (error) {
+            setError(`Network error: ${error.message}`);
+        } finally {
+            setIsLoadingGame(false);
+        }
+    }, [roomCode, playerId]);
+
+    const playCards = useCallback(async (cardsToPlay) => {
+        setIsLoadingGame(true);
+        setError(null);
+        try {
+            if (!roomCode || !playerId) {
+                setError("Cannot play cards: roomCode or playerId missing.");
+                return;
+            }
+            const response = await api.playCards(roomCode, playerId, cardsToPlay);
+            if (response.success) {
+                console.log("Cards played successfully:", response.message);
+                // Game state will be updated by the polling mechanism
+            } else {
+                setError(response.error || "Failed to play cards.");
+            }
+        } catch (error) {
+            setError(`Network error: ${error.message}`);
+        } finally {
+            setIsLoadingGame(false);
+        }
+    }, [roomCode, playerId]);
+
+    const passTurn = useCallback(async () => {
+        setIsLoadingGame(true);
+        setError(null);
+        try {
+            if (!roomCode || !playerId) {
+                setError("Cannot pass turn: roomCode or playerId missing.");
+                return;
+            }
+            const response = await api.passTurn(roomCode, playerId);
+            if (response.success) {
+                console.log("Turn passed successfully:", response.message);
+                // Game state will be updated by the polling mechanism
+            } else {
+                setError(response.error || "Failed to pass turn.");
+            }
+        } catch (error) {
+            setError(`Network error: ${error.message}`);
+        } finally {
+            setIsLoadingGame(false);
+        }
+    }, [roomCode, playerId]);
+
+
+    // --- Polling for Game State ---
     useEffect(() => {
         let intervalId;
         if (roomCode && playerId) {
-            intervalId = setInterval(async () => {
-                try {
-                    const response = await api.getGameState(roomCode, playerId);
-                    if (response.success) {
-                        setGameState(response);
-                    } else {
-                        console.error("Failed to fetch game state:", response.message);
-                        // If room no longer exists or player kicked, reset state
-                        if (response.message === "Room not found" || response.message === "Player not in room" || response.status === 404) {
-                            console.log("Room or player invalid, resetting game state.");
-                            resetGameContextState();
-                            navigate('/');
-                        }
-                    }
-                } catch (error) {
-                    console.error("API error fetching game state:", error);
-                    // Optionally reset state if fetching repeatedly fails due to network issues
-                    // resetGameContextState();
-                    // navigate('/');
-                }
-            }, 1000); // Poll every 1 second
+            // Initial fetch on mount/roomCode/playerId change
+            getGameState();
+
+            // Set up polling
+            intervalId = setInterval(() => {
+                getGameState(); // Call the memoized getGameState
+            }, 1000); // Poll every 1 second as per your original code
         }
+
+        // Cleanup function for interval
         return () => {
             if (intervalId) {
                 clearInterval(intervalId);
                 console.log("Game state polling stopped.");
             }
         };
-    }, [roomCode, playerId, navigate, resetGameContextState]);
+    }, [roomCode, playerId, getGameState]); // Dependencies for polling effect
 
     const value = useMemo(() => ({
-        roomCode,
-        playerId,
-        isHost,
+        roomCode, setRoomCode, // setRoomCode is exposed for initial setting in LobbyPage
+        playerId, setPlayerId, // setPlayerId is exposed for initial setting in LobbyPage
+        isHost, setIsHost, // setIsHost is exposed for initial setting in LobbyPage
         gameState,
         isLoadingGame,
         error,
-        setError,
-        setGameState,
+        setError, // Expose setError for components to set their own specific errors if needed
+        setGameState, // Expose setGameState if direct updates are ever needed (rarely)
+        // Exposed API interaction functions
         createNewRoom,
         joinExistingRoom,
         leaveRoom,
         deleteRoom,
+        startGame,
+        playCards,
+        passTurn,
+        // The getGameState function itself is part of the value for manual refresh if needed
         getGameState,
+        // The api object is not exposed directly, components use the functions above
     }), [
         roomCode, playerId, isHost, gameState, isLoadingGame, error,
-        createNewRoom, joinExistingRoom, leaveRoom, deleteRoom, getGameState, setGameState 
+        createNewRoom, joinExistingRoom, leaveRoom, deleteRoom,
+        startGame, playCards, passTurn, getGameState, setError, setGameState
     ]);
 
     return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

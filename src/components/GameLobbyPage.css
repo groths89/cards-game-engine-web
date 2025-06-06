@@ -10,7 +10,7 @@
 }
 
 .game-lobby-page-container h2 {
-  color: var(--color-deep-red); /* Or another highlight color */
+  color: var(--color-deep-red);
   margin-bottom: var(--spacing-lg);
   font-size: 2.5em;
   text-shadow: 1px 1px 2px var(--shadow-black);
@@ -90,7 +90,7 @@
 
 .form-group input,
 .form-group select {
-  width: calc(100% - 20px); /* Adjust for padding */
+  width: calc(100% - 20px);
   padding: 10px;
   border: 1px solid #555;
   border-radius: 4px;
@@ -108,7 +108,7 @@
 }
 
 button[type="submit"] {
-  background-color: var(--status-success); /* Green for submit */
+  background-color: var(--status-success);
   color: var(--color-white);
   padding: var(--spacing-sm) var(--spacing-lg);
   border: none;
@@ -141,7 +141,6 @@ button[type="submit"]:disabled {
   margin: var(--spacing-lg) 0;
 }
 
-/* Lobbies Grid Specific Styles */
 .lobbies-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

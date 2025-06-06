@@ -1,5 +1,5 @@
 .card {
-  background-color: var(--ui-white-background);
+  background-color: var(--color-off-white);
   border-radius: 8px;
   width: 150px; /* <--- NEW, BIGGER WIDTH */
   height: 210px; /* <--- NEW, BIGGER HEIGHT (120 * 1.4 = 168) */
@@ -19,13 +19,13 @@
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 3px 3px 8px var(--shadow-black);
 }
 
 .card.selected {
   transform: translateY(-15px) scale(1.05);
-  box-shadow: 0 0 10px var(--brand-blue);
-  border-color: var(--brand-blue);
+  box-shadow: 0 0 10px var(--action-primary);
+  border-color: var(--action-primary);
   z-index: 10;
 }
 
@@ -53,6 +53,7 @@
   flex-wrap: wrap; /* Allow pips to wrap into multiple rows */
   justify-content: center; /* Center pips horizontally */
   align-content: center; /* Center rows of pips vertically */
+  flex-direction: column;
   gap: 4px; /* Space between pips */
   padding: 4px; /* Padding around the pips area */
   box-sizing: border-box; /* Include padding in dimensions */
@@ -86,9 +87,9 @@
 
 /* Suit colors */
 .card.red-suit {
-  color: var(--brand-red) !important; /* Your defined brand red */
+  color: var(--suit-red) !important; /* Your defined brand red */
 }
 
 .card.black-suit {
-  color: var(--ui-dark-text); /* Black or very dark grey */
+  color: var(--suit-black) !important; /* Black or very dark grey */
 }
