@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import './GameLobbyPage.css';
 import { useGame } from "../contexts/GameContext";
+import api from "../api";
 
 function GameLobbyPage() {
     const { createNewRoom, joinExistingRoom, isLoadingGame } = useGame();
@@ -24,13 +25,15 @@ function GameLobbyPage() {
     const fetchLobbies = useCallback(async () => {
         setLoadingLobbies(true);
         try {
-            const response = await fetch('http://127.0.0.1:5000/rooms');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            setLobbies(data);
+            const response = await api.getActiveRooms();
+            if (response.success) {
+            setLobbies(response.rooms || []);
             setError('');
+            } else {
+            console.error('API Error fetching lobbies:', response.error);
+            setError(response.error || 'Failed to load active games. Please try again later.');
+            setLobbies([]);
+            }
         } catch (apiError) {
             console.error('Error fetching lobbies:', apiError);
             setError('Failed to load active games. Please try again later.');
