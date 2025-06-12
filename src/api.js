@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:5000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8080';
 
 console.log('DEBUG (Frontend JS): API_BASE_URL (after process.env check):', API_BASE_URL);
 console.log('DEBUG (Frontend JS): Raw process.env.REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
@@ -91,7 +91,7 @@ const api = {
      */
     getGameState: async (roomCode, playerId) => {
         // For GET requests, parameters are usually in the URL
-        return api.makeRequest(`/get_game_state?room_code=${roomCode}&player_id=${playerId}`, {}, 'GET');
+        return api.makeRequest(`/game_state?room_code=${roomCode}&player_id=${playerId}`, {}, 'GET');
     },
 
     /**
