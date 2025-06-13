@@ -1,95 +1,323 @@
-.card {
-  background-color: var(--color-off-white);
+/* --- Base Card Container --- */
+.card-container {
+  position: relative;
+  width: 80px;
+  height: 112px;
+  background-color: white;
   border-radius: 8px;
-  width: 150px; /* <--- NEW, BIGGER WIDTH */
-  height: 210px; /* <--- NEW, BIGGER HEIGHT (120 * 1.4 = 168) */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid #ccc;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Distributes corners and center */
-  padding: 2px; /* Keep padding */
-  font-family: "Arial", sans-serif; /* A cleaner, more standard font */
-  font-weight: bold;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
+  justify-content: space-between;
+  padding: 8px;
+  font-family: "Inter", sans-serif;
   cursor: pointer;
-  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
-  position: relative; /* For z-index and hand layout */
-  user-select: none; /* Prevent text selection on cards */
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 3px 3px 8px var(--shadow-black);
-}
-
-.card.selected {
-  transform: translateY(-15px) scale(1.05);
-  box-shadow: 0 0 10px var(--action-primary);
-  border-color: var(--action-primary);
-  z-index: 10;
-}
-
-.card-corner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Align rank and suit to the left */
-  line-height: 0.9; /* Tighter line height */
-  padding: 2px; /* Small padding inside corners */
-}
-
-.card-top-left {
-  align-items: flex-start;
-}
-
-.card-bottom-right {
-  align-items: flex-end;
-  transform: rotate(180deg);
-}
-
-/* Central Pips Area */
-.card-center-pips {
-  flex-grow: 1; /* Takes up all available space in the middle */
-  display: flex;
-  flex-wrap: wrap; /* Allow pips to wrap into multiple rows */
-  justify-content: center; /* Center pips horizontally */
-  align-content: center; /* Center rows of pips vertically */
-  flex-direction: column;
-  gap: 4px; /* Space between pips */
-  padding: 4px; /* Padding around the pips area */
-  box-sizing: border-box; /* Include padding in dimensions */
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
   overflow: hidden;
 }
 
-.card-pip-symbol {
-  font-size: 1.7em; /* Larger size for central pips */
-  line-height: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 35px; /* Give pips a fixed size for better alignment */
-  height: 35px;
+@media (min-width: 640px) {
+  .card-container {
+    width: 96px;
+    height: 128px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+}
+@media (min-width: 768px) {
+  .card-container {
+    width: 112px;
+    height: 144px;
+    border-radius: 12px;
+    padding: 12px;
+  }
 }
 
-.card-face-rank {
-  font-size: 1.8em; /* Larger font for J, Q, K in the center */
-  font-weight: bold;
-  text-align: center;
-  width: 100%;
+.card-selected {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px #60a5fa;
+  transform: translateY(-16px);
+}
+
+/* --- Suit Colors --- */
+.red-suit {
+  color: var(--suit-red);
+}
+.black-suit {
+  color: var(--suit-black);
+}
+
+/* --- Card Corners (Rank & Suit Symbol) --- */
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  z-index: 10;
+}
+
+.card-top-left {
+  top: 8px;
+  left: 8px;
+}
+
+.card-bottom-right {
+  bottom: 8px;
+  right: 8px;
+  transform: rotate(180deg);
 }
 
 .card-rank {
-  font-size: 1.3em;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+@media (min-width: 640px) {
+  .card-rank {
+    font-size: 1.5rem;
+  }
 }
 
-.card-suit-symbol {
-  font-size: 1.2em;
+.card-corner-suit-svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+@media (min-width: 640px) {
+  .card-corner-suit-svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
-/* Suit colors */
-.card.red-suit {
-  color: var(--suit-red) !important; /* Your defined brand red */
+/* --- Main Pip Area --- */
+.card-pip-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 25% 15% 25% 15%;
+  pointer-events: none;
 }
 
-.card.black-suit {
-  color: var(--suit-black) !important; /* Black or very dark grey */
+/* Base style for individual pip SVG */
+.pip-wrapper {
+  width: 12px; /* Adjusted size: w-3 h-3 */
+  height: 12px;
+  fill: currentColor;
+  position: absolute; /* Pips are positioned absolutely within .card-pip-area */
+}
+@media (min-width: 640px) {
+  /* sm breakpoint */
+  .pip-wrapper {
+    width: 16px; /* sm:w-4 sm:h-4 */
+    height: 16px;
+  }
+}
+@media (min-width: 768px) {
+  .pip-wrapper {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.rotated-pip {
+  transform: rotate(180deg);
+}
+
+.pip-position-top-left {
+  position: inherit;
+  top: 28%;
+  left: 30%;
+  transform: translate(-50%, -50%);
+}
+.pip-position-top-right {
+  position: inherit;
+  top: 28%;
+  right: 30%;
+  transform: translate(50%, -50%);
+}
+.pip-position-top-middle {
+  position: inherit;
+  top: 28%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.pip-position-top-center-top {
+  position: inherit;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+} /* For 7, 8, 9, 10 */
+
+.pip-position-middle-left {
+  position: inherit;
+  top: 50%;
+  left: 30%;
+  transform: translate(-50%, -50%);
+}
+.pip-position-middle-right {
+  position: inherit;
+  top: 50%;
+  right: 30%;
+  transform: translate(50%, -50%);
+}
+.pip-position-center-middle {
+  position: inherit;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+} /* For 3, 5, 9 */
+
+/* For 9 and 10, slightly narrower side pips */
+.pip-position-middle-left-narrow {
+  position: inherit;
+  top: 43%;
+  left: 30%;
+  transform: translate(-50%, -50%);
+}
+.pip-position-middle-right-narrow {
+  position: inherit;
+  top: 43%;
+  right: 30%;
+  transform: translate(50%, -50%);
+}
+
+/* For 10 only - the vertical pips in the middle */
+.pip-position-center-left-vertical {
+  position: inherit;
+  top: 58%;
+  left: 30%;
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+.pip-position-center-right-vertical {
+  position: inherit;
+  top: 58%;
+  right: 30%;
+  transform: translate(50%, -50%) rotate(180deg);
+}
+
+.pip-position-bottom-left-rotated {
+  position: inherit;
+  bottom: 28%;
+  left: 30%;
+  transform: translate(-50%, 50%) rotate(180deg);
+}
+.pip-position-bottom-right-rotated {
+  position: inherit;
+  bottom: 28%;
+  right: 30%;
+  transform: translate(50%, 50%) rotate(180deg);
+}
+.pip-position-bottom-middle-rotated {
+  position: inherit;
+  bottom: 28%;
+  left: 50%;
+  transform: translate(-50%, 50%) rotate(180deg);
+}
+.pip-position-bottom-center-bottom-rotated {
+  position: inherit;
+  bottom: 38%;
+  left: 50%;
+  transform: translate(-50%, 50%) rotate(180deg);
+} /* For 8, 9, 10 */
+
+.card-center-face-symbol {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%; /* Adjust size as needed */
+  height: 60%; /* Adjust size as needed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-center-suit-svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.card-center-face-image-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60%; /* Adjust as needed */
+  height: 60%; /* Adjust as needed */
+  overflow: hidden;
+  border-radius: 4px; /* Optional: slight rounding for the image itself */
+}
+
+.card-center-face-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Ensures the image fits without distortion */
+  border-radius: inherit; /* Inherit border-radius from wrapper */
+}
+
+/* --- Card Back Styles --- */
+.card-face-down {
+  background-color: #1a202c; /* blue-800 equivalent for dark background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Hide anything outside bounds */
+}
+
+.card-back-pattern {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-back-symbol {
+  width: 48px; /* w-12 h-12 */
+  height: 48px;
+  color: #90cdf4; /* blue-300 equivalent */
+  fill: currentColor;
+  z-index: 1;
+}
+
+.card-back-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    #3b82f6,
+    #4f46e5
+  ); /* from-blue-700 via-blue-900 to-indigo-900 */
+  border-radius: 8px; /* Match card-container border-radius */
+  opacity: 0.7;
+  z-index: 0;
+}
+@media (min-width: 640px) {
+  /* sm breakpoint */
+  .card-back-gradient {
+    border-radius: 10px;
+  }
+}
+@media (min-width: 768px) {
+  /* md breakpoint */
+  .card-back-gradient {
+    border-radius: 12px;
+  }
+}
+
+.card-back-initials {
+  position: relative; /* Needs z-index to be above gradient */
+  color: white;
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: bold; /* font-bold */
+  z-index: 10;
 }
