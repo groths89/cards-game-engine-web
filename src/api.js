@@ -101,7 +101,7 @@ const api = {
      * @returns {Promise<object>} API response.
      */
     startGame: async (roomCode, playerId) => {
-        return api.makeRequest('/start_game', { room_code: roomCode, player_id: playerId });
+        return api.makeRequest('/start_game_round', { room_code: roomCode, player_id: playerId });
     },
 
     /**

@@ -1,8 +1,8 @@
 // src/pages/GamePage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useGame } from '../contexts/GameContext'; // Centralized game context
-import './GamePage.css'; // New CSS file for global game page elements
+import { useGame } from '../contexts/GameContext';
+import './GamePage.css';
 
 const GamePage = ({ children, isMobile }) => {
     const {
@@ -11,39 +11,40 @@ const GamePage = ({ children, isMobile }) => {
         getGameState,
         leaveRoom,
         deleteRoom,
-        error, setError,
-        isLoadingGame, setIsLoadingGame
+        error,
+        isLoadingGame,
     } = useGame();
 
     const navigate = useNavigate();
-    const { gameType } = useParams(); // Get gameType from URL for display
+    const { gameType } = useParams();
 
     const [minPlayersRequired, setMinPlayersRequired] = useState(0);
     const [maxPlayersAllowed, setMaxPlayersAllowed] = useState(0);
 
-    // --- Global Game Page Handlers ---
     const handleLeaveRoom = async () => {
-        // Use the context's leaveRoom function
-        await leaveRoom();
-        // Navigation is handled by leaveRoom inside GameContext
+        if (window.confirm("Are you sure you want to leave this room?")) {
+            await leaveRoom();
+        }
     };
 
     const handleDeleteRoom = async () => {
         if (!window.confirm("Are you sure you want to delete this room? This cannot be undone.")) {
             return;
         }
-        // Use the context's deleteRoom function
         await deleteRoom();
-        // Navigation is handled by deleteRoom inside GameContext
     };
 
-    // Effect to fetch game state on initial load or roomCode change
     useEffect(() => {
-        // getGameState is now without params, it uses context state (roomCode, playerId)
-        getGameState();
-    }, [getGameState]); // Dependency array: getGameState is memoized by useCallback
+        if (roomCode && playerId && !gameState) {
+            console.log("GamePage: Initial fetch of game state...");
+            getGameState();
+        } else if (!roomCode && !isLoadingGame) {
+            console.warn("GamePage: No roomCode found or room deleted. Redirecting to home.");
+            navigate('/');
+        }
+    }, [roomCode, playerId, gameState, getGameState, isLoadingGame, navigate]);
 
-    // Update min/max players from gameState
+
     useEffect(() => {
         if (gameState) {
             setMinPlayersRequired(gameState.MIN_PLAYERS || 0);
@@ -51,39 +52,16 @@ const GamePage = ({ children, isMobile }) => {
         }
     }, [gameState]);
 
-    // Effect to fetch game state on initial load or roomCode change
-    useEffect(() => {
-        const fetchGameData = async () => {
-            if (roomCode) {
-                await getGameState(roomCode);
-            } else {
-                console.warn("No roomCode found. Redirecting to home.");
-                navigate('/');
-            }
-        };
-        fetchGameData();
-    }, [roomCode, getGameState, navigate]);
-
-    // Update min/max players from gameState
-    useEffect(() => {
-        if (gameState) {
-            setMinPlayersRequired(gameState.MIN_PLAYERS || 0);
-            setMaxPlayersAllowed(gameState.MAX_PLAYERS || 0);
-        }
-    }, [gameState]);
-
-    // Derived state for convenience
     const allPlayersData = gameState?.all_players_data || [];
     const currentPlayers = allPlayersData.length;
     const currentPlayerName = allPlayersData.find(p => p.id === gameState?.current_turn_player_id)?.name;
     const displayGameType = gameType ? gameType.charAt(0).toUpperCase() + gameType.slice(1).toLowerCase() : 'Game';
 
-    // --- Conditional Rendering for Loading ---
-    if (isLoadingGame || !gameState || !gameState.all_players_data) {
+    if (isLoadingGame || !gameState || !gameState.all_players_data || !roomCode || !playerId) {
         return (
             <div className="game-page-loading">
                 <p>Loading {displayGameType} game data...</p>
-                {error && <p className="error-message">{error}</p>}
+                {(error && !isLoadingGame) && <p className="error-message">{error}</p>} {/* Show error if not loading */}
             </div>
         );
     }
@@ -91,7 +69,7 @@ const GamePage = ({ children, isMobile }) => {
     return (
         <div className="game-page-container">
             {!isMobile && (
-            <div className="game-page-top-info desktop-ui">
+                <div className="game-page-top-info desktop-ui">
                     <h2 className="game-page-title">{displayGameType} Game Board</h2>
 
                     <div className="lobby-status-section">
@@ -124,6 +102,11 @@ const GamePage = ({ children, isMobile }) => {
                             <button onClick={handleLeaveRoom} className="button leave-room-button">
                                 Leave Room
                             </button>
+                            {isHost && (
+                                <button onClick={handleDeleteRoom} className="button delete-room-button">
+                                    Delete Room
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -131,7 +114,7 @@ const GamePage = ({ children, isMobile }) => {
 
             {isMobile && (
                 <div className="game-page-top-info mobile-ui">
-                    <h2 className="game-page-title-mobile">{displayGameType} Board</h2> {/* More compact title */}
+                    <h2 className="game-page-title-mobile">{displayGameType} Board</h2>
                     <div className="mobile-info-bar">
                         <div className="mobile-room-code">
                             <span>Room:</span> <strong>{roomCode}</strong>
@@ -144,42 +127,52 @@ const GamePage = ({ children, isMobile }) => {
                         <button onClick={handleLeaveRoom} className="button small-button mobile-action-button">
                             Leave
                         </button>
+                        {isHost && (
+                            <button onClick={handleDeleteRoom} className="button small-button mobile-action-button delete-button">
+                                Delete
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* Player Status Sidebar (horizontal on mobile) */}
             <div className="player-status-sidebar">
                 <div className="player-list-grid">
                     {allPlayersData.map(player => (
                         <div key={player.id} className={`player-item ${player.id === playerId ? 'you' : ''}`}>
                             <div className="player-name-wrapper">
-                                    {/* Main status light */}
-                                    <div className="status-light-container">
-                                        <span className={`status-light ${player.is_active ? 'active' : 'inactive'}`}></span>                                 
-                                    </div>
-
-                                    <span className="player-name">
-                                        {player.name === gameState.current_player && gameState.game_started && (
-                                            <span className="status-light current-turn-light"></span> // Removed 'status-light' class here as it's not needed for this specific light
-                                        )}                                            
-                                        {player.name}
-                                        {player.id === playerId && " (You)"}
-                                        {gameState.host_id === player.id && " (Host)"}
-                                    </span>
+                                <div className="status-light-container">
+                                    <span className={`status-light ${player.is_active ? 'active' : 'inactive'}`}></span>
+                                </div>
+                                <span className="player-name">
+                                    {player.name === gameState.current_player && gameState.game_started && (
+                                        <span className="status-light current-turn-light"></span>
+                                    )}  
+                                    {player.name}
+                                    {player.id === playerId && " (You)"}
+                                    {gameState.host_id === player.id && " (Host)"}
+                                </span>
                             </div>
                             <span className="player-hand-size">Cards: {player.hand_size}</span>
-                            {gameState.game_started && player.rank !== null && (
-                                <span className="player-rank">Rank: {player.rank}</span>
+                            {gameState.game_started && gameState.rankings && gameState.rankings[player.id] && (
+                                <span className="player-rank">Rank: {gameState.rankings[player.id].rank}</span>
                             )}
                         </div>
                     ))}
                 </div>
-            </div>            
+            </div>
+
+            {/* Game Messages */}
+            {gameState.game_message && <p className="game-message">{gameState.game_message}</p>}
+            {!gameState.game_started && <p className="game-message">Waiting for players to join...</p>}
+            {gameState.game_started && currentPlayerName && (
+                <p className="game-message">It's {currentPlayerName}'s turn!</p>
+            )}
+
+            {/* Render game-specific content passed as children */}
+            {/* The child component (e.g., AssholeGamePage) will get its props from context now */}
             {React.Children.map(children, child => {
                 if (React.isValidElement(child)) {
-                    // This will override any isMobile prop already on the child
-                    // ensuring it gets the most up-to-date value from App.js -> GamePage
                     return React.cloneElement(child, { isMobile: isMobile });
                 }
                 return child;
