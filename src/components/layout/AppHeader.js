@@ -15,7 +15,7 @@ import { faBars,
          faShieldHalved
 } from '@fortawesome/free-solid-svg-icons';
 import './AppHeader.css';
-import logo from '../../assets/gregs-games-social-logo-v2.png';
+import logo from '../../assets/gregs-games-social-logo-v3.png';
 
 const AppHeader = ({isMobile, isMenuOpen, onMenuToggle}) => {
     const { roomCode: paramRoomCode, gameType: paramGameType } = useParams();

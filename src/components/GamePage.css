@@ -261,7 +261,9 @@
   background-color: var(--color-white);
   border-radius: var(--border-radius-sm);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+  transition:
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out;
   cursor: pointer;
 }
 
@@ -350,7 +352,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
   border: 1px solid var(--border-default);
 }
 
@@ -427,6 +431,10 @@
   font-size: 1.1em;
   font-weight: 500;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--spacing-xs);
 }
 
 .start-game-button-container {
@@ -436,20 +444,22 @@
 }
 
 .start-game-button {
-  background-color: var(--color-green);
+  background-color: var(--color-vibrant-green);
   color: var(--color-white);
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--border-radius-lg);
   font-size: 1.2em;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
   border: none;
   box-shadow: 0 4px 10px rgba(0, 128, 0, 0.3);
 }
 
 .start-game-button:hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--color-green) 80%, black);
+  background-color: color-mix(in srgb, var(--color-vibrant-green) 80%, black);
   transform: translateY(-2px);
 }
 

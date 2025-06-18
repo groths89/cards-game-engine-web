@@ -76,7 +76,7 @@ const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
     return (
 <div className="player-hand-container">
             {/* Left Scroll Arrow (Visibility controlled by CSS via display: none/flex) */}
-            {showLeftArrow && (
+            {showLeftArrow && !isMobile && (
                 <button className="scroll-arrow left-arrow" onClick={() => scrollHand('left')} disabled={!showLeftArrow}>
                     <FontAwesomeIcon icon={faChevronLeft} />
                 </button>
@@ -104,7 +104,7 @@ const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
             </div>
 
             {/* Right Scroll Arrow (Visibility controlled by CSS via display: none/flex) */}
-            {showRightArrow && (
+            {showRightArrow && !isMobile && (
                 <button className="scroll-arrow right-arrow" onClick={() => scrollHand('right')} disabled={!showRightArrow}>
                     <FontAwesomeIcon icon={faChevronRight} />
                 </button>
