@@ -29,7 +29,8 @@ export const GameProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [isHost, setIsHost] = useState(() => localStorage.getItem('isHost') === 'true' || false);
     const [gameState, setGameState] = useState(null);
-    const [isLoadingGame, setIsLoadingGame] = useState(false);
+    const [_isFetchingGameState, _setIsFetchingGameState] = useState(false);
+    const [_isFetchingRooms, _setIsFetchingRooms] = useState(false);
     const [error, setError] = useState(null);
 
     const roomCodeRef = useRef(roomCode);
@@ -61,6 +62,10 @@ export const GameProvider = ({ children }) => {
     }, [playerId]);
 
     useEffect(() => {
+        localStorage.setItem('playerName', playerName || '');
+    }, [playerName]);
+
+    useEffect(() => {
         localStorage.setItem('isHost', isHost.toString());
     }, [isHost]);
 
@@ -70,30 +75,52 @@ export const GameProvider = ({ children }) => {
         setPlayerName(null);
         setIsHost(false);
         setGameState(null);
-        setIsLoadingGame(false);
+        _setIsFetchingGameState(false);
+        _setIsFetchingRooms(false);
         setError(null);
+
         localStorage.removeItem('roomCode');
         localStorage.removeItem('playerId');
         localStorage.removeItem('playerName');
         localStorage.removeItem('isHost');
     }, []);
 
-    const getGameState = useCallback(async () => {
+    const updateGameState = useCallback((data) => {
+        console.log('GameContext: Received game_state_update:', data);
+        if (data.room_code === roomCodeRef.current) {
+            setGameState(data);
+            setIsHost(data.host_id === playerIdRef.current);
+            // --- IMPORTANT LOGGING FOR DIAGNOSIS ---
+            console.log(`Player ID in context (current user): ${playerIdRef.current}`);
+            console.log(`Is this player the host? ${data.host_id === playerIdRef.current}`);
+            console.log(`Total players in received payload: ${data.all_players_data ? data.all_players_data.length : 'N/A'}`);
+            if (data.all_players_data) {
+                console.log(`Player names in received payload: ${data.all_players_data.map(p => p.name).join(', ')}`);
+            } else {
+                console.warn("Payload missing 'all_players_data'.");
+            }
+            console.log(`Your hand size in received payload: ${data.your_hand ? data.your_hand.length : 'N/A'}`);
+            // --- END IMPORTANT LOGGING ---
+        } else {
+            console.warn("GameContext: Received game_state_update for a different roomCode, ignoring.", data.room_code, roomCodeRef.current);
+        }        
+    }, [playerIdRef, roomCodeRef]);
+
+    const fetchGameState = useCallback(async () => {
         if (!roomCodeRef.current || !playerIdRef.current) {
             console.warn("GameContext: Cannot fetch game state, roomCode or playerId missing.");
             setGameState(null);
-            setIsLoadingGame(false); 
+            _setIsFetchingGameState(false); 
             return { success: false, message: "Missing roomCode or playerId." };
         }
 
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
             const response = await api.getGameState(roomCodeRef.current, playerIdRef.current);
 
             if (response.success) {
-                setGameState(response);
-                setIsHost(response.host_id === playerIdRef.current);
+                updateGameState(response);
                 setError(null);
                 return { success: true, ...response };
             } else {
@@ -110,8 +137,10 @@ export const GameProvider = ({ children }) => {
             console.error("GameContext: API error fetching game state:", err);
             setError(`Network error: ${err.message}`);
             return { success: false, message: `Network error: ${err.message}` };
+        } finally {
+            _setIsFetchingGameState(false);
         }
-    }, [navigate, resetGameContextState]);
+    }, [navigate, resetGameContextState, updateGameState]);
 
     useEffect(() => {
         if (!socket.connected) {
@@ -125,6 +154,8 @@ export const GameProvider = ({ children }) => {
             if (playerIdRef.current && roomCodeRef.current) {
                 console.log(`Attempting to re-join WebSocket room ${roomCodeRef.current} for player ${playerIdRef.current}`);
                 socket.emit('join_game_room_socket', { room_code: roomCodeRef.current});
+            } else {
+                getActiveRooms();
             }
         };
 
@@ -137,12 +168,8 @@ export const GameProvider = ({ children }) => {
             console.log('Server Status:', data.msg);
         };
 
-        const onGameStateUpdate = (data) => {
-            console.log('Received game_state_update:', data);
-            if (data.room_code === roomCodeRef.current) {
-                setGameState(data);
-                setIsHost(data.host_id === playerIdRef.current);
-            }
+        const handleGameStateUpdateEvent = (data) => {
+            updateGameState(data);
         };
 
         const onRoomUpdate = (data) => {
@@ -170,23 +197,25 @@ export const GameProvider = ({ children }) => {
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
         socket.on('status', onStatus);
-        socket.on('game_state_update', onGameStateUpdate);
+        socket.on('game_state_update', handleGameStateUpdateEvent);
         socket.on('room_update', onRoomUpdate);
         socket.on('receive_chat_message', onReceiveChatMessage);
         socket.on('room_deleted', onRoomDeleted);
 
         return () => {
             socket.off('connect', onConnect);
+            socket.off('disconnect', onDisconnect);
             socket.off('status', onStatus);
-            socket.off('game_state_update', onGameStateUpdate);
+            socket.off('game_state_update', handleGameStateUpdateEvent);
             socket.off('room_update', onRoomUpdate);
             socket.off('receive_chat_message', onReceiveChatMessage);
             socket.off('room_deleted', onRoomDeleted);
+            socket.disconnect()
         };
-    }, [navigate, resetGameContextState]);
+    }, [navigate, resetGameContextState, updateGameState]);
 
     const createNewRoom = useCallback(async (gameType, playerName) => {
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
             const response = await api.createRoom(gameType, playerName);
@@ -195,9 +224,9 @@ export const GameProvider = ({ children }) => {
                 setPlayerId(response.player_id);
                 setPlayerName(response.player_name);
                 setIsHost(true);
-                setGameState(response.game_state);
+                updateGameState(response.game_state);
 
-                localStorage.setItem('playerID', response.player_id);
+                localStorage.setItem('playerId', response.player_id);
                 localStorage.setItem('roomCode', response.room_code);
                 localStorage.setItem('playerName', response.player_name);
                 localStorage.setItem('isHost', 'true');
@@ -215,12 +244,12 @@ export const GameProvider = ({ children }) => {
             setError(`Network error: ${error.message}`);
             return { success: false, error: 'Network error or server unavailable.' };
         } finally {
-            setIsLoadingGame(false);
+            _setIsFetchingGameState(false);
         }
-    }, [navigate]);
+    }, [navigate, updateGameState]);
 
     const joinExistingRoom = useCallback(async (code, playerName) => {
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
             const response = await api.joinRoom(code, playerName);
@@ -229,7 +258,7 @@ export const GameProvider = ({ children }) => {
                 setPlayerId(response.player_id);
                 setPlayerName(response.player_name);
                 setIsHost(false);
-                setGameState(response.game_state);
+                updateGameState(response.game_state);
 
                 localStorage.setItem('playerID', response.player_id);
                 localStorage.setItem('roomCode', code);
@@ -249,16 +278,18 @@ export const GameProvider = ({ children }) => {
             setError(`Network error: ${error.message}`);
             return { success: false, error: 'Network error or server unavailable.' };
         } finally {
-            setIsLoadingGame(false);
+            _setIsFetchingGameState(false);
         }
-    }, [navigate]);
+    }, [navigate, updateGameState]);
 
     const getActiveRooms = useCallback(async (gameType) => {
+        _setIsFetchingRooms(true);
         try {
             const result = await api.getActiveRooms(gameType);
 
             if (result.success) {
                 console.log("Fetched lobbies successfully:", result.rooms);
+                setLobbyRooms(result.rooms)
                 return { success: true, rooms: result.rooms };
             } else {
                 console.error(`API Error for getActiveRooms:`, result.error || 'Unknown error');
@@ -267,14 +298,16 @@ export const GameProvider = ({ children }) => {
         } catch (unexpectedError) {
             console.error(`Unhandled Error in getActiveRooms callback:`, unexpectedError);
             return { success: false, error: 'An unexpected client-side error occurred.' };
+        } finally {
+            _setIsFetchingRooms(false);
         }
-    });
+    }, []);
 
     const leaveRoom = useCallback(async () => {
         const currentRoomCode = roomCodeRef.current;
         const currentPlayerId = playerIdRef.current;
 
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
             if (currentRoomCode && currentPlayerId) {
@@ -294,7 +327,6 @@ export const GameProvider = ({ children }) => {
         } finally {
             resetGameContextState();
             navigate('/');
-            setIsLoadingGame(false);
         }
     }, [navigate, resetGameContextState]);
 
@@ -302,7 +334,7 @@ export const GameProvider = ({ children }) => {
         const currentRoomCode = roomCodeRef.current;
         const currentPlayerId = playerIdRef.current;
 
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
             if (currentRoomCode && currentPlayerId) {
@@ -322,12 +354,11 @@ export const GameProvider = ({ children }) => {
         } finally {
             resetGameContextState();
             navigate('/');
-            setIsLoadingGame(false);
         }
     }, [navigate, resetGameContextState]);
 
     const startGame = useCallback(async () => {
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
         if (!roomCodeRef.current || !playerIdRef.current) {
@@ -347,12 +378,12 @@ export const GameProvider = ({ children }) => {
         setError('Network error or server unavailable.');
         return { success: false, error: 'Network error or server unavailable.' };
         } finally {
-        setIsLoadingGame(false);
+            _setIsFetchingGameState(false);
         }
     }, []);
 
     const playCards = useCallback(async (cardsToPlay) => {
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
         if (!roomCodeRef.current || !playerIdRef.current || !gameStateRef.current) {
@@ -372,12 +403,12 @@ export const GameProvider = ({ children }) => {
         setError('Network error or server unavailable.');
         return { success: false, error: 'Network error or server unavailable.' };
         } finally {
-        setIsLoadingGame(false);
+            _setIsFetchingGameState(false);
         }
     }, []);
 
     const passTurn = useCallback(async () => {
-        setIsLoadingGame(true);
+        _setIsFetchingGameState(true);
         setError(null);
         try {
         if (!roomCodeRef.current || !playerIdRef.current || !gameStateRef.current) {
@@ -397,18 +428,48 @@ export const GameProvider = ({ children }) => {
         setError('Network error or server unavailable.');
         return { success: false, error: 'Network error or server unavailable.' };
         } finally {
-        setIsLoadingGame(false);
+            _setIsFetchingGameState(false);
         }
     }, []);
+
+    const submitInterruptBid = useCallback(async (cardsToBid) => {
+        _setIsFetchingGameState(true);
+        setError(null);
+        try {
+            if (!roomCodeRef.current || !playerIdRef.current) {
+                setError('Cannot submit bid: roomCode or playerId missing.');
+                return { success: false, error: 'Cannot submit bid: roomCode or playerId missing.' };
+            }
+            socket.emit('submit_interrupt_bid', {
+                room_code: roomCodeRef.current,
+                player_id: playerIdRef.current,
+                cards: cardsToBid
+            });
+            console.log(`Emitted 'submit_interrupt_bid' for room: ${roomCodeRef.current}, player: ${playerIdRef.current}`);
+            return { success: true };
+        } catch (err) {
+            console.error('Error submitting interrupt bid:', err);
+            setError('Network error or server unavailable.');
+            return { success: false, error: 'Network error or server unavailable.' };
+        } finally {
+            _setIsFetchingGameState(false);
+        }        
+    }, []);
+
+    const isLoadingGame = useMemo(() => {
+        return _isFetchingGameState || (!!roomCode && !!playerId && !gameState);
+    }, [_isFetchingGameState, roomCode, playerId, gameState]);
 
     const value = useMemo(() => ({
         socket,
         roomCode, setRoomCode,
         playerId, setPlayerId,
+        playerName, setPlayerName,
         isHost, setIsHost,
         isConnected,
         gameState,
         isLoadingGame,
+        isLoadingRooms: _isFetchingRooms,
         error,
         getActiveRooms,
         setError,
@@ -421,11 +482,32 @@ export const GameProvider = ({ children }) => {
         startGame,
         playCards,
         passTurn,
-        getGameState,
+        fetchGameState,
+        submitInterruptBid,
+        lastPlayedCards: gameState?.last_played_cards || [],
+        gameStatus: gameState?.game_status || "WAITING_FOR_PLAYERS",
+        gameMessage: gameState?.game_message || "",
+        currentPlayRank: gameState?.current_play_rank,
+        currentPlayCount: gameState?.current_play_count,
+        players: gameState?.all_players_data || [], // Renamed for clarity
+        yourHand: gameState?.your_hand || [],
+        pile: gameState?.pile || [],
+        currentTurnPlayerId: gameState?.current_turn_player_id,
+        isMyTurn: gameState?.current_turn_player_id === playerId,
+        isGameOver: gameState?.is_game_over || false,
+        rankings: gameState?.rankings || {},
+        gameStarted: gameState?.game_started || false,
+        minPlayers: gameState?.MIN_PLAYERS || 2,
+        maxPlayers: gameState?.MAX_PLAYERS || 10,
+        interruptActive: gameState?.interrupt_active || false,
+        interruptType: gameState?.interrupt_type || null,
+        interruptInitiatorPlayerId: gameState?.interrupt_initiator_player_id || null,
+        interruptRank: gameState?.interrupt_rank || null,
+        interruptBids: gameState?.interrupt_bids || [],
     }), [
-        roomCode, playerId, isHost, isConnected, gameState, isLoadingGame, error, lobbyRooms,
+        roomCode, playerId, playerName, isHost, isConnected, gameState, error, lobbyRooms,
         createNewRoom, joinExistingRoom, leaveRoom, deleteRoom, getActiveRooms,
-        startGame, playCards, passTurn, getGameState, setError, setGameState
+        startGame, playCards, passTurn, fetchGameState, setError, setGameState, submitInterruptBid, isLoadingGame, _isFetchingRooms
     ]);
 
     return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

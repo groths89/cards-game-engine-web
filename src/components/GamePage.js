@@ -8,7 +8,7 @@ const GamePage = ({ children, isMobile }) => {
     const {
         roomCode, playerId, isHost,
         gameState,
-        getGameState,
+        fetchGameState,
         leaveRoom,
         deleteRoom,
         error,
@@ -37,12 +37,12 @@ const GamePage = ({ children, isMobile }) => {
     useEffect(() => {
         if (roomCode && playerId && !gameState) {
             console.log("GamePage: Initial fetch of game state...");
-            getGameState();
+            fetchGameState();
         } else if (!roomCode && !isLoadingGame) {
             console.warn("GamePage: No roomCode found or room deleted. Redirecting to home.");
             navigate('/');
         }
-    }, [roomCode, playerId, gameState, getGameState, isLoadingGame, navigate]);
+    }, [roomCode, playerId, gameState, fetchGameState, isLoadingGame, navigate]);
 
 
     useEffect(() => {
@@ -164,10 +164,6 @@ const GamePage = ({ children, isMobile }) => {
 
             {/* Game Messages */}
             {gameState.game_message && <p className="game-message">{gameState.game_message}</p>}
-            {!gameState.game_started && <p className="game-message">Waiting for players to join...</p>}
-            {gameState.game_started && currentPlayerName && (
-                <p className="game-message">It's {currentPlayerName}'s turn!</p>
-            )}
 
             {/* Render game-specific content passed as children */}
             {/* The child component (e.g., AssholeGamePage) will get its props from context now */}

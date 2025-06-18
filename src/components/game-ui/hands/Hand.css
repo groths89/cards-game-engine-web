@@ -38,7 +38,9 @@
 
 .card-wrapper {
   flex-shrink: 0;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out,
     border 0.2s ease-out;
   cursor: pointer;
   user-select: none;
@@ -87,7 +89,9 @@
   cursor: pointer;
   position: absolute;
   z-index: 20;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
   top: 50%;
   transform: translateY(-50%);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
@@ -114,6 +118,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 32%;
     padding: 10px var(--spacing-md);
     height: 160px;
     margin-bottom: var(--spacing-sm);

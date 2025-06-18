@@ -13,6 +13,7 @@ const AssholeGamePage = ({ isMobile }) => {
         startGame,
         playCards,
         passTurn,
+        submitInterruptBid,
         error,
         isLoadingGame,
     } = useGame();
@@ -27,25 +28,69 @@ const AssholeGamePage = ({ isMobile }) => {
     const isHost = gameState?.host_id === playerId;
     const canStartGame = !gameState?.game_started && (allPlayersData.length) >= (gameState?.MIN_PLAYERS || 0);
 
+    const gameMessage = gameState?.game_message || "";
+
+    const interruptActive = gameState?.interrupt_active || false;
+    const interruptType = gameState?.interrupt_type || null;
+    const interruptInitiatorPlayerId = gameState?.interrupt_initiator_player_id || null;
+    const interruptRank = gameState?.interrupt_rank || null;
+    const interruptBids = gameState?.interrupt_bids || [];
+
     const opponentHands = allPlayersData
         .filter(player => player.id !== playerId)
-        .sort((a, b) => a.name.localeCompare(b.name)); // Example sort by name
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const getPlayerNameById = useCallback((id) => {
+        return allPlayersData.find(p => p.id === id)?.name || `Player ${id.substring(0, 4)}`;
+    }, [allPlayersData]);
 
     const handleCardClick = useCallback((clickedCard) => {
         setSelectedCards(prevSelected => {
             const isAlreadySelected = prevSelected.some(card => card.id === clickedCard.id);
-            if (isAlreadySelected) {
-                return prevSelected.filter(card => card.id !== clickedCard.id);
+            if (interruptActive && interruptType === 'three_play') {
+                // If 3-play interrupt is active, only allow selecting 3s
+                if (clickedCard.rank !== 3) {
+                    alert("During a 3-play interrupt, you can only select 3s."); // Use custom modal
+                    return prevSelected;
+                }
+                // If it's a 3 and already selected, deselect; otherwise, select
+                if (isAlreadySelected) {
+                    return prevSelected.filter(card => card.id !== clickedCard.id);
+                } else {
+                    return [...prevSelected, clickedCard];
+                }
+            } else if (interruptActive && interruptType === 'bomb_opportunity') {
+                 // For bomb opportunities, allow selecting 4 of a kind higher than current bomb
+                 // This logic will be more complex and might involve a dedicated "Bomb" button
+                 // For now, let's prevent general card selection during bomb interrupt if not playing bomb
+                 // or if the selected cards are not a bomb.
+                 // The backend's `add_interrupt_bid` will validate the cards.
+                 // For now, let's assume we can select any 4 of a kind to "bid" on a bomb.
+                 if (prevSelected.length > 0 && clickedCard.rank !== prevSelected[0].rank) {
+                    alert("To make a bomb interrupt, you must select cards of the same rank (4 of them).");
+                    return prevSelected;
+                 }
+                 if (isAlreadySelected) {
+                     return prevSelected.filter(card => card.id !== clickedCard.id);
+                 } else {
+                     return [...prevSelected, clickedCard];
+                 }
+
             } else {
-                // Optional: Add logic to only select cards of the same rank for playing a set
-                // if (prevSelected.length > 0 && clickedCard.rank !== prevSelected[0].rank) {
-                //     alert("You can only select cards of the same rank for a play.");
-                //     return prevSelected;
-                // }
-                return [...prevSelected, clickedCard];
+                // Normal play: allow selecting any card, with optional same-rank check
+                if (isAlreadySelected) {
+                    return prevSelected.filter(card => card.id !== clickedCard.id);
+                } else {
+                    // Optional: Add logic to only select cards of the same rank for playing a set
+                    // if (prevSelected.length > 0 && clickedCard.rank !== prevSelected[0].rank) {
+                    //     alert("For a normal play, you can only select cards of the same rank.");
+                    //     return prevSelected;
+                    // }
+                    return [...prevSelected, clickedCard];
+                }
             }
         });
-    }, []);
+    }, [interruptActive, interruptType]);
 
     const handlePlayCards = async () => {
         if (selectedCards.length === 0) {
@@ -54,6 +99,10 @@ const AssholeGamePage = ({ isMobile }) => {
         }
         if (!isYourTurn) {
             alert("It's not your turn!");
+            return;
+        }
+        if (interruptActive) {
+            alert("An interrupt is active. You cannot make a regular play now.");
             return;
         }
         const result = await playCards(selectedCards);
@@ -70,7 +119,37 @@ const AssholeGamePage = ({ isMobile }) => {
             alert("It's not your turn to pass!");
             return;
         }
+        if (interruptActive) {
+            alert("An interrupt is active. You cannot pass now.");
+            return;
+        }
         await passTurn();
+    };
+
+    const handleInterruptPlay = async () => {
+        if (selectedCards.length === 0) {
+            alert("Please select cards to play for the interrupt.");
+            return;
+        }
+        if (!interruptActive) {
+            alert("No interrupt is currently active.");
+            return;
+        }
+        if (interruptType === 'three_play' && !selectedCards.every(card => card.rank === 3)) {
+            alert("You can only play 3s during a three-play interrupt.");
+            return;
+        }
+        if (interruptType === 'bomb_opportunity' && !(selectedCards.length === 4 && selectedCards.every(card => card.rank === selectedCards[0].rank))) {
+             alert("For a bomb interrupt, you must select exactly 4 cards of the same rank.");
+             return;
+        }
+
+        const result = await submitInterruptBid(selectedCards); // Call the new context function
+        if (result?.success) {
+            setSelectedCards([]); // Clear selected cards on successful bid
+        } else {
+            // Error handling via context
+        }
     };
 
     const handleStartGame = async () => {
@@ -89,23 +168,26 @@ const AssholeGamePage = ({ isMobile }) => {
         <div className="asshole-game-board-wrapper">
             {/* Main Game Content Area */}
             <div className="game-board-layout">
-                {/* Top Players Area (Opponents) */}
-                <div className="top-players" style={{ gridArea: 'top-players' }}>
-                    {opponentHands.map(player => (
-                        <div key={player.id} className={`opponent-display ${player.id === currentTurnPlayerId ? 'current-turn' : ''}`}>
-                            <div className="opponent-info">
-                                <span className="opponent-name">{player.name}</span>
-                                <span className="opponent-cards-count">{player.hand_size} cards</span>
+                {!isMobile && (
+                    {/* Top Players Area (Opponents) */},
+                    <div className="top-players" style={{ gridArea: 'top-players' }}>
+                        {opponentHands.map(player => (
+                            <div key={player.id} className={`opponent-display ${player.id === currentTurnPlayerId ? 'current-turn' : ''}`}>
+                                <div className="opponent-info">
+                                    <span className="opponent-name">{player.name}</span>
+                                    <span className="opponent-cards-count">{player.hand_size} cards</span>
+                                </div>
+                                <div className="opponent-cards">
+                                    {Array.from({ length: player.hand_size }).map((_, i) => (
+                                        // Render a generic face-down card for each card in opponent's hand
+                                        <Card key={`${player.id}-card-${i}`} isFaceDown={true} />
+                                    ))}
+                                </div>
                             </div>
-                            <div className="opponent-cards">
-                                {Array.from({ length: player.hand_size }).map((_, i) => (
-                                    // Render a generic face-down card for each card in opponent's hand
-                                    <Card key={`${player.id}-card-${i}`} isFaceDown={true} />
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>                    
+                )}
+
 
                 {/* Main Play Area (Pile, Last Played Cards) */}
                 <div className="main-area" style={{ gridArea: 'main-area' }}>
@@ -152,7 +234,7 @@ const AssholeGamePage = ({ isMobile }) => {
                 {/* Controls Area (Play/Pass) */}
                 <div className="controls-area" style={{ gridArea: 'controls' }}>
                     <div className="game-board-actions">
-                        {gameState?.game_started && (
+                        {!gameState?.game_started && (
                             <div className="player-turn-actions">
                                 <button
                                     onClick={handlePlayCards}

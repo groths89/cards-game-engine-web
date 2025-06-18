@@ -9,31 +9,29 @@ function GameLobbyPage() {
         createNewRoom,
         joinExistingRoom,
         isLoadingGame,
-        lobbyRooms, // Now directly get lobbyRooms from GameContext
-        error: contextError, // Get error from context
-        getActiveRooms // Keep this if you want to explicitly fetch once on mount, or rely purely on WS connect
+        isLoadingRooms,
+        lobbyRooms,
+        error: contextError,
+        getActiveRooms
     } = useGame();
 
     const navigate = useNavigate();
     const { gameType } = useParams();
 
-    const [activeTab, setActiveTab] = useState('create'); // 'create' or 'join'
+    const [activeTab, setActiveTab] = useState('create');
     const [createPlayerName, setCreatePlayerName] = useState('');
     const [joinRoomCode, setJoinRoomCode] = useState('');
     const [joinPlayerName, setJoinPlayerName] = useState('');
-    const [localError, setLocalError] = useState(''); // For form validation errors
+    const [localError, setLocalError] = useState('');
 
-    // Clear local error when tab changes
     useEffect(() => {
         setLocalError('');
     }, [activeTab]);
 
-    // When the component mounts, ensure we have the latest lobby list.
-    // The GameContext's onConnect already broadcasts room_update, but this ensures it.
     useEffect(() => {
-        getActiveRooms(); // Initial fetch to ensure lobby data is present on page load
-    }, [getActiveRooms]);
-
+        console.log(`GameLobbyPage: Fetching active rooms for gameType: ${gameType}`);
+        getActiveRooms(gameType);
+    }, [getActiveRooms, gameType]);
 
     const handleCreateRoom = async (event) => {
         event.preventDefault();
@@ -64,7 +62,6 @@ function GameLobbyPage() {
             return;
         }
 
-        // joinExistingRoom in GameContext handles API call, state updates, and navigation
         const result = await joinExistingRoom(joinRoomCode.toUpperCase(), joinPlayerName.trim());
         if (!result.success) {
             setLocalError(result.error || 'Failed to join room. Please try again.');
@@ -86,21 +83,21 @@ function GameLobbyPage() {
                 <button
                     className={`tab-button ${activeTab === 'create' ? 'active' : ''}`}
                     onClick={() => setActiveTab('create')}
-                    disabled={isLoadingGame}
+                    disabled={isLoadingGame || isLoadingRooms}
                 >
                     Create Room
                 </button>
                 <button
                     className={`tab-button ${activeTab === 'join' ? 'active' : ''}`}
                     onClick={() => setActiveTab('join')}
-                    disabled={isLoadingGame}
+                    disabled={isLoadingGame || isLoadingRooms}
                 >
                     Join Room
                 </button>
             </div>
 
             <div className="tab-content">
-                {isLoadingGame && <p>Loading...</p>}
+                {isLoadingRooms && <p>Loading...</p>}
 
                 {activeTab === 'create' && (
                     <form onSubmit={handleCreateRoom} className="form-section">
@@ -112,11 +109,11 @@ function GameLobbyPage() {
                                 id="createPlayerName"
                                 value={createPlayerName}
                                 onChange={(e) => setCreatePlayerName(e.target.value)}
-                                disabled={isLoadingGame}
+                                disabled={isLoadingGame || isLoadingRooms}
                                 required
                             />
                         </div>
-                        <button type="submit" disabled={isLoadingGame || !createPlayerName.trim()}>
+                        <button type="submit" disabled={isLoadingGame || isLoadingRooms || !createPlayerName.trim()}>
                             Create Room
                         </button>
                     </form>
@@ -132,7 +129,7 @@ function GameLobbyPage() {
                                 id="joinRoomCode"
                                 value={joinRoomCode}
                                 onChange={(e) => setJoinRoomCode(e.target.value.toUpperCase())}
-                                disabled={isLoadingGame}
+                                disabled={isLoadingGame || isLoadingRooms}
                                 required
                             />
                         </div>
@@ -143,11 +140,11 @@ function GameLobbyPage() {
                                 id="joinPlayerName"
                                 value={joinPlayerName}
                                 onChange={(e) => setJoinPlayerName(e.target.value)}
-                                disabled={isLoadingGame}
+                                disabled={isLoadingGame || isLoadingRooms}
                                 required
                             />
                         </div>
-                        <button type="submit" disabled={isLoadingGame || !joinRoomCode.trim() || !joinPlayerName.trim()}>
+                        <button type="submit" disabled={isLoadingGame || isLoadingRooms || !joinRoomCode.trim() || !joinPlayerName.trim()}>
                             Join Room
                         </button>
                     </form>
@@ -159,7 +156,7 @@ function GameLobbyPage() {
             {/* Active Lobbies List (Read-only) - Now uses lobbyRooms from context */}
             <div className="active-lobbies-section form-section">
                 <h3>Active Games List</h3>
-                {isLoadingGame ? ( // Using isLoadingGame from context for overall loading indicator
+                {isLoadingRooms ? ( // Using isLoadingRooms from context for overall loading indicator
                     <p>Loading active games...</p>
                 ) : lobbyRooms.length === 0 ? (
                     <p>No active games available. Be the first to create one!</p>
@@ -177,7 +174,6 @@ function GameLobbyPage() {
                                     <p className={`lobby-status status-${lobby.status.toLowerCase().replace(' ', '-')}`}>
                                         Status: {lobby.status.replace('_', ' ')}
                                     </p>
-                                    {/* The "Join This Room" button was removed as per the provided structure */}
                                 </div>
                             ))}
                     </div>
