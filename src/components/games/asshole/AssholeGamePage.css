@@ -560,6 +560,14 @@
     width: 100%;
   }
 
+  .controls-area {
+    display: flex;
+    width: 30%;
+    box-sizing: border-box;
+    align-items: center;
+    flex-direction: row;
+  }
+
   .button.play-button,
   .button.pass-button {
     width: 100%; /* Full width buttons on mobile */

@@ -8,14 +8,20 @@ import Card from "../../game-ui/cards/Card";
 
 const AssholeGamePage = ({ isMobile }) => {
     const {
-        roomCode, playerId,
+        socket,
+        roomCode, 
+        playerId,
+        playerName,
         gameState,
+        isHost,
         startGame,
         playCards,
         passTurn,
         submitInterruptBid,
         error,
         isLoadingGame,
+        chatHistory,
+        setChatHistory,
     } = useGame();
 
     const [selectedCards, setSelectedCards] = useState([]);
@@ -25,7 +31,6 @@ const AssholeGamePage = ({ isMobile }) => {
     const currentTurnPlayerId = gameState?.current_turn_player_id;
     const allPlayersData = gameState?.all_players_data || [];
     const isYourTurn = gameState && currentTurnPlayerId === playerId;
-    const isHost = gameState?.host_id === playerId;
     const canStartGame = !gameState?.game_started && (allPlayersData.length) >= (gameState?.MIN_PLAYERS || 0);
 
     const gameMessage = gameState?.game_message || "";
@@ -144,9 +149,9 @@ const AssholeGamePage = ({ isMobile }) => {
              return;
         }
 
-        const result = await submitInterruptBid(selectedCards); // Call the new context function
+        const result = await submitInterruptBid(selectedCards);
         if (result?.success) {
-            setSelectedCards([]); // Clear selected cards on successful bid
+            setSelectedCards([]);
         } else {
             // Error handling via context
         }
@@ -231,10 +236,10 @@ const AssholeGamePage = ({ isMobile }) => {
                     />
                 </div>
 
-                {/* Controls Area (Play/Pass) */}
+                {/* Controls Area (Play/Pass/Interrupt) */}
                 <div className="controls-area" style={{ gridArea: 'controls' }}>
                     <div className="game-board-actions">
-                        {!gameState?.game_started && (
+                        {gameState?.game_started && (
                             <div className="player-turn-actions">
                                 <button
                                     onClick={handlePlayCards}
@@ -250,8 +255,19 @@ const AssholeGamePage = ({ isMobile }) => {
                                 >
                                     PASS
                                 </button>
+                                {gameState?.interrupt_active && (
+                                    <button
+                                        onClick={handleInterruptPlay}
+                                        className="button primary-action interrupt-button"
+                                        disabled={pileCards.length === 0 || isLoadingGame}
+                                    >
+                                        INTERRUPT
+                                    </button>
+                                    
+                                )}                                
                             </div>
                         )}
+
                     </div>
                 </div>
             </div>
