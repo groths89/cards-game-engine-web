@@ -137,6 +137,16 @@ const api = {
         return api.makeRequest(`/rooms${query}`, {}, 'GET'); // Changed endpoint to /rooms
     },
 
+    /**
+     * Submits a bid or passes during an active interrupt.
+     * @param {string} roomCode The code of the room.
+     * @param {string} playerId The ID of the player submitting the bid/pass.
+     * @param {Array<object> | null} cards The array of cards to bid, or null if passing.
+     * @returns {Promise<object>} API response.
+     */
+    submitInterruptBid: async (roomCode, playerId, cards) => {
+        return api.makeRequest('/submit_interrupt_bid', { room_code: roomCode, player_id: playerId, cards: cards });
+    },
     // Add other game-specific API calls here as needed
 };
 

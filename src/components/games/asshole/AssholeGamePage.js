@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useGame } from "../../../contexts/GameContext";
 
@@ -27,10 +27,16 @@ const AssholeGamePage = ({ isMobile }) => {
     const [selectedCards, setSelectedCards] = useState([]);
 
     const yourHand = gameState?.your_hand || [];
+
+    // Get current pile cards and the new backend flag
     const pileCards = gameState?.pile || [];
+    const pileClearedThisTurn = gameState?.pile_cleared_this_turn || false;
+
     const currentTurnPlayerId = gameState?.current_turn_player_id;
     const allPlayersData = gameState?.all_players_data || [];
-    const isYourTurn = gameState && currentTurnPlayerId === playerId;
+    
+
+    
     const canStartGame = !gameState?.game_started && (allPlayersData.length) >= (gameState?.MIN_PLAYERS || 0);
 
     const gameMessage = gameState?.game_message || "";
@@ -40,6 +46,58 @@ const AssholeGamePage = ({ isMobile }) => {
     const interruptInitiatorPlayerId = gameState?.interrupt_initiator_player_id || null;
     const interruptRank = gameState?.interrupt_rank || null;
     const interruptBids = gameState?.interrupt_bids || [];
+    const interruptActiveUntil = gameState?.interrupt_active_until || null; // Unix timestamp
+    const playersRespondedToInterrupt = useMemo(() => new Set(gameState?.players_responded_to_interrupt || []), [gameState?.players_responded_to_interrupt]);
+    
+    const isYourTurn = gameState && currentTurnPlayerId === playerId;
+    const isInterruptInitiator = interruptInitiatorPlayerId === playerId;
+    
+    const [timeLeft, setTimeLeft] = useState(0);
+
+    // States for animation
+    const [animatingClearCards, setAnimatingClearCards] = useState([]);
+    const [isClearingAnimationActive, setIsClearingAnimationActive] = useState(false);
+    const prevPileCardsRef = useRef([]);
+
+    useEffect(() => {
+        prevPileCardsRef.current = pileCards;
+    }, [pileCards]);
+
+    useEffect(() => {
+        const pileWasNotEmpty = prevPileCardsRef.current.length > 0;
+        const pileIsNowEmpty = pileCards.length === 0;
+
+        if (pileWasNotEmpty && pileIsNowEmpty && pileClearedThisTurn) {
+            setAnimatingClearCards(prevPileCardsRef.current);
+            setIsClearingAnimationActive(true);
+
+            const animationDuration = 600;
+            const timer = setTimeout(() => {
+                setIsClearingAnimationActive(false);
+                setAnimatingClearCards([]);
+            }, animationDuration);
+
+            return () => clearTimeout(timer);
+        }
+    }, [pileCards, pileClearedThisTurn]);
+
+    useEffect(() => {
+        let timerInterval;
+        if (interruptActive && interruptActiveUntil) {
+            timerInterval = setInterval(() => {
+                const now = Date.now() / 1000;
+                const remaining = interruptActiveUntil - now;
+                setTimeLeft(Math.max(0, Math.floor(remaining)));
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+        } else {
+            setTimeLeft(0);
+        }
+
+        return () => clearInterval(timerInterval);
+    }, [interruptActive, interruptActiveUntil]);
 
     const opponentHands = allPlayersData
         .filter(player => player.id !== playerId)
@@ -65,14 +123,8 @@ const AssholeGamePage = ({ isMobile }) => {
                     return [...prevSelected, clickedCard];
                 }
             } else if (interruptActive && interruptType === 'bomb_opportunity') {
-                 // For bomb opportunities, allow selecting 4 of a kind higher than current bomb
-                 // This logic will be more complex and might involve a dedicated "Bomb" button
-                 // For now, let's prevent general card selection during bomb interrupt if not playing bomb
-                 // or if the selected cards are not a bomb.
-                 // The backend's `add_interrupt_bid` will validate the cards.
-                 // For now, let's assume we can select any 4 of a kind to "bid" on a bomb.
                  if (prevSelected.length > 0 && clickedCard.rank !== prevSelected[0].rank) {
-                    alert("To make a bomb interrupt, you must select cards of the same rank (4 of them).");
+                    alert("To make a bomb interrupt, you must select cards of the same rank.");
                     return prevSelected;
                  }
                  if (isAlreadySelected) {
@@ -131,31 +183,50 @@ const AssholeGamePage = ({ isMobile }) => {
         await passTurn();
     };
 
-    const handleInterruptPlay = async () => {
-        if (selectedCards.length === 0) {
-            alert("Please select cards to play for the interrupt.");
-            return;
-        }
+    const handleInterruptAction = useCallback(async (isPassing) => {
         if (!interruptActive) {
-            alert("No interrupt is currently active.");
+            alert("No interrupt is active.");
             return;
         }
-        if (interruptType === 'three_play' && !selectedCards.every(card => card.rank === 3)) {
-            alert("You can only play 3s during a three-play interrupt.");
+        if (playersRespondedToInterrupt.has(playerId)) {
+            alert("You have already responded to this interrupt.");
             return;
         }
-        if (interruptType === 'bomb_opportunity' && !(selectedCards.length === 4 && selectedCards.every(card => card.rank === selectedCards[0].rank))) {
-             alert("For a bomb interrupt, you must select exactly 4 cards of the same rank.");
+        if (isInterruptInitiator) {
+             alert("You initiated this interrupt and cannot bid on it.");
              return;
         }
 
-        const result = await submitInterruptBid(selectedCards);
-        if (result?.success) {
+        let cardsToSubmit = [];
+        if (!isPassing) {
+            cardsToSubmit = selectedCards;
+            if (cardsToSubmit.length === 0) {
+                alert("Please select cards to bid with, or pass.");
+                return;
+            }
+            if (interruptType === 'three_play' && !cardsToSubmit.every(card => card.rank === "3")) {
+                alert("You can only bid with 3s during a three-play interrupt.");
+                return;
+            }
+            if (interruptType === 'bomb_opportunity') {
+                if (!(cardsToSubmit.length === 4 && cardsToSubmit.every(card => card.rank === cardsToSubmit[0].rank))) {
+                    alert("A bomb bid must be exactly 4 cards of the same rank.");
+                    return;
+                }
+                if (cardsToSubmit[0].rank_value !== interruptRank) {
+                    alert(`Bomb bid must be for rank ${Card.getRankDisplay(interruptRank)}.`);
+                    return;
+                }
+            }
+        }
+
+        const result = await submitInterruptBid(cardsToSubmit, isPassing);
+        if (result.success) {
             setSelectedCards([]);
         } else {
-            // Error handling via context
+            // Error handling is managed by useGame hook, which updates `error` state
         }
-    };
+    }, [interruptActive, interruptType, interruptRank, playersRespondedToInterrupt, playerId, isInterruptInitiator, selectedCards, submitInterruptBid]);
 
     const handleStartGame = async () => {
         if (!isHost) {
@@ -198,11 +269,37 @@ const AssholeGamePage = ({ isMobile }) => {
                 <div className="main-area" style={{ gridArea: 'main-area' }}>
                     {/* Pile Area */}
                     <div className="pile-area">
-                        {pileCards.length > 0 ? (
+                        {isClearingAnimationActive && (
+                            <div className="animating-pile-clear">
+                                {animatingClearCards.slice(-4).map((cardObject, index) => {
+                                    const randomX = (Math.random() - 0.5) * 400; // -200px to +200px horizontal spread
+                                    const randomY = (Math.random() - 0.5) * 300; // -150px to +150px vertical spread
+                                    const randomRotate = (Math.random() - 0.5) * 720; // -360deg to +360deg rotation
+
+                                    return (
+                                        <Card
+                                            key={`animating-${cardObject.id || `${cardObject.rank}-${cardObject.suit}-${index}`}`}
+                                            rank={cardObject.rank}
+                                            suit={cardObject.suit}
+                                            isFaceUp={true}
+                                            className="card-clear-animation"
+                                            style={{
+                                                animationDelay: `${index * 80}ms`,
+                                                '--end-x': `${randomX}px`,
+                                                '--end-y': `${randomY}px`,
+                                                '--end-rotate': `${randomRotate}deg`,
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Render the actual pile cards ONLY when animation is NOT active */}
+                        {!isClearingAnimationActive && (pileCards.length > 0 ? (
                             <>
                                 <h4>Current Pile</h4>
                                 <div className="pile-cards-display">
-                                    {/* Display up to the last 4 cards on the pile for visibility */}
                                     {pileCards.slice(-4).map((cardObject, index) => (
                                         <Card
                                             key={cardObject.id || `${cardObject.rank}-${cardObject.suit}-${index}`}
@@ -218,8 +315,62 @@ const AssholeGamePage = ({ isMobile }) => {
                             </>
                         ) : (
                             <p className="no-pile-message">No cards on the pile. Lead a new round!</p>
-                        )}
+                        ))}
                     </div>
+                
+                    {interruptActive && (
+                        <div className="interrupt-overlay">
+                            <h3>{interruptType === 'three_play' ? '3-Play Interrupt!' : 'Bomb Opportunity!'}</h3>
+                            <p>{gameState?.game_message}</p>
+                            <p>Time Left: {timeLeft}s</p>
+                            
+                            {/* Display current bids */}
+                            {interruptBids.length > 0 && (
+                                <div className="current-interrupt-bids">
+                                    <h4>Current Bids:</h4>
+                                    <ul>
+                                        {interruptBids.map((bid, idx) => (
+                                            <li key={idx}>
+                                                {getPlayerNameById(bid.player_id)}: {bid.cards.length} x {bid.cards[0]?.rank_display || bid.cards[0]?.rank}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Display who has responded */}
+                            {gameState?.players && gameState.players.length > 1 && (
+                                <p>Responded: {Array.from(playersRespondedToInterrupt).map(id => getPlayerNameById(id)).join(', ')}</p>
+                            )}
+
+                            {/* Interrupt Action Buttons (only for players who can respond) */}
+                            {
+                                // Show these buttons IF:
+                                // 1. An interrupt is active
+                                // 2. The current player HAS NOT already responded
+                                // 3. The current player IS NOT the one who initiated the interrupt
+                                interruptActive && 
+                                !playersRespondedToInterrupt.has(playerId) && 
+                                !isInterruptInitiator && (
+                                <div className="interrupt-actions">
+                                    <button
+                                        onClick={() => handleInterruptAction(false)}
+                                        className="button primary-action"
+                                        disabled={isLoadingGame || selectedCards.length === 0}
+                                    >
+                                        Bid ({selectedCards.length})
+                                    </button>
+                                    <button
+                                        onClick={() => handleInterruptAction(true)}
+                                        className="button secondary-action"
+                                        disabled={isLoadingGame}
+                                    >
+                                        Pass Interrupt
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}                
                 </div>
 
                 {/* Left/Right Side Players (Currently commented out in your structure, but grid areas are reserved) */}
@@ -254,17 +405,7 @@ const AssholeGamePage = ({ isMobile }) => {
                                     disabled={!isYourTurn || pileCards.length === 0 || isLoadingGame}
                                 >
                                     PASS
-                                </button>
-                                {gameState?.interrupt_active && (
-                                    <button
-                                        onClick={handleInterruptPlay}
-                                        className="button primary-action interrupt-button"
-                                        disabled={pileCards.length === 0 || isLoadingGame}
-                                    >
-                                        INTERRUPT
-                                    </button>
-                                    
-                                )}                                
+                                </button>                               
                             </div>
                         )}
 

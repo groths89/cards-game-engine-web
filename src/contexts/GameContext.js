@@ -359,20 +359,23 @@ export const GameProvider = ({ children }) => {
                 setError('Cannot submit bid: roomCode or playerId missing.');
                 return { success: false, error: 'Cannot submit bid: roomCode or playerId missing.' };
             }
-            socket.emit('submit_interrupt_bid', {
-                room_code: roomCodeRef.current,
-                player_id: playerIdRef.current,
-                cards: cardsToBid
-            });
-            console.log(`Emitted 'submit_interrupt_bid' for room: ${roomCodeRef.current}, player: ${playerIdRef.current}`);
-            return { success: true };
+
+            const response = await api.submitInterruptBid(roomCodeRef.current, playerIdRef.current, cardsToBid);
+            
+            if (response.success) {
+                console.log("Interrupt bid submitted successfully.");
+                return { success: true };
+            } else {
+                setError(response.error || "Failed to submit interrupt bid.");
+                return { success: false, error: response.error };
+            }
         } catch (err) {
             console.error('Error submitting interrupt bid:', err);
             setError('Network error or server unavailable.');
             return { success: false, error: 'Network error or server unavailable.' };
         } finally {
             setIsFetchingGameState(false);
-        }        
+        }         
     }, []);
 
         useEffect(() => {
