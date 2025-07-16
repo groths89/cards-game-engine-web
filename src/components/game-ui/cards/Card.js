@@ -1,5 +1,9 @@
 import React from "react";
 import './Card.css';
+import cardLogo from '../../../assets/gregs-games-social-logo-v2.png';
+import kingCard from '../../../assets/king-face-card.jpg';
+import queenCard from '../../../assets/queen-face-card.jpg';
+import jackCard from '../../../assets/jack-face-card.jpg';
 
 // Helper function to generate an array of numbers for mapping pips
 const getPipCount = (rank) => {
@@ -70,6 +74,25 @@ const SuitSVG = ({suit, colorClass}) => {
     );
 }
 
+export const getRankDisplay = (rankValue) => {
+    switch (rankValue) {
+        case 2: return "2";
+        case 3: return "3";
+        case 4: return "4";
+        case 5: return "5";
+        case 6: return "6";
+        case 7: return "7";
+        case 8: return "8";
+        case 9: return "9";
+        case 10: return "10";
+        case 11: return "J";
+        case 12: return "Q";
+        case 13: return "K";
+        case 14: return "A";
+        default: return String(rankValue);
+    }
+};
+
 const Card = ({rank, suit, isFaceDown = false, isSelected, onClick}) => {
     const isRed = suit === 'H' || suit === 'D';
     const textColorClass = isRed ? 'red-suit' : 'black-suit';
@@ -91,12 +114,9 @@ const Card = ({rank, suit, isFaceDown = false, isSelected, onClick}) => {
         return (
             <div className={`card card-face-down ${isSelected ? 'card-selected' : ''}`} onClick={onClick}>
                 <div className="card-back-pattern">
-                    <svg viewBox="0 0 24 24" className="card-back-symbol">
-                        <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 17c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zM13 5h-2v6H5v2h6v6h2v-6h6v-2h-6V5z"/>
-                    </svg>
+                    <img className="card-back-symbol" src={cardLogo} alt="Greg's Game Social Card Back"/>
                 </div>
                 <div className="card-back-gradient"></div>
-                <div className="card-back-initials">GG</div>
             </div>
         );
     }
@@ -128,15 +148,15 @@ const Card = ({rank, suit, isFaceDown = false, isSelected, onClick}) => {
             let altText = '';
             switch (rank) {
                 case 'J':
-                    faceImageUrl = `https://placehold.co/60x80/${colorHexForPlaceholder}/ffffff?text=J`;
+                    faceImageUrl = jackCard;
                     altText = `Jack of ${suit}`;
                     break;
                 case 'Q':
-                    faceImageUrl = `https://placehold.co/60x80/${colorHexForPlaceholder}/ffffff?text=Q`;
+                    faceImageUrl = queenCard;
                     altText = `Queen of ${suit}`;
                     break;
                 case 'K':
-                    faceImageUrl = `https://placehold.co/60x80/${colorHexForPlaceholder}/ffffff?text=K`;
+                    faceImageUrl = kingCard;
                     altText = `King of ${suit}`;
                     break;
                 default:

@@ -20,16 +20,9 @@ const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
             const currentRef = handCardsScrollRef.current;
             if (currentRef) {
                 const { scrollWidth, clientWidth, scrollLeft } = currentRef;
-                console.log('--- checkArrows fired ---');
-                console.log('scrollWidth:', scrollWidth); // Total width of all cards + overlaps
-                console.log('clientWidth:', clientWidth); // Visible width of the scrollable container
-                console.log('scrollLeft:', scrollLeft);   // Current scroll position
-                console.log('Scrollable distance remaining:', scrollWidth - clientWidth - scrollLeft);
-                console.log('-------------------------');
                 setShowLeftArrow(scrollLeft > 0);
                 setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 1);
             } else {
-                console.log('checkArrows fired, but handCardsScrollRef.current is null.');
                 setShowLeftArrow(false);
                 setShowRightArrow(false);
             }
@@ -67,16 +60,11 @@ const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
                 };
             }
         }, [cards, checkArrows, isMobile]);
-
-        console.log('Current arrow states: showLeftArrow =', showLeftArrow, ', showRightArrow =', showRightArrow);
     
-        if (!cards || cards.length === 0) {
-            return <p>Your hand is empty.</p>;
-        }
     return (
-<div className="player-hand-container">
+        <div className="player-hand-container">
             {/* Left Scroll Arrow (Visibility controlled by CSS via display: none/flex) */}
-            {showLeftArrow && !isMobile && (
+            {!isMobile && showLeftArrow && (
                 <button className="scroll-arrow left-arrow" onClick={() => scrollHand('left')} disabled={!showLeftArrow}>
                     <FontAwesomeIcon icon={faChevronLeft} />
                 </button>
@@ -104,7 +92,7 @@ const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
             </div>
 
             {/* Right Scroll Arrow (Visibility controlled by CSS via display: none/flex) */}
-            {showRightArrow && !isMobile && (
+            {!isMobile && showRightArrow && (
                 <button className="scroll-arrow right-arrow" onClick={() => scrollHand('right')} disabled={!showRightArrow}>
                     <FontAwesomeIcon icon={faChevronRight} />
                 </button>

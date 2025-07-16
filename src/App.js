@@ -12,17 +12,35 @@ import GamePage from './components/GamePage';
 import AssholeGamePage from './components/games/asshole/AssholeGamePage';
 import AppHeader from './components/layout/AppHeader';
 
-function App() {
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+const useIsMobile = (breakpoint = 768) => {
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768);
+        // Define the media query
+        const mediaQuery = window.matchMedia(`(max-width: ${breakpoint}px)`);
+
+        // Initial check
+        setIsMobile(mediaQuery.matches);
+
+        // Listener for changes
+        const handleChange = (event) => {
+            setIsMobile(event.matches);
         };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize)
-    }, []);
+
+        mediaQuery.addEventListener('change', handleChange);
+
+        // Cleanup
+        return () => {
+            mediaQuery.removeEventListener('change', handleChange);
+        };
+    }, [breakpoint]);
+
+    return isMobile;
+};
+
+function App() {
+    const isMobile = useIsMobile(768);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleMenuToggle = () => {
         setIsMenuOpen(prev => !prev);
