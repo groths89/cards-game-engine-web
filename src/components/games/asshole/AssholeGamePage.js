@@ -4,7 +4,8 @@ import { useGame } from "../../../contexts/GameContext";
 
 import './AssholeGamePage.css';
 import Hand from "../../game-ui/hands/Hand";
-import Card from "../../game-ui/cards/Card";
+import Card, { getRankDisplay } from "../../game-ui/cards/Card";
+import api from "../../../api";
 
 const AssholeGamePage = ({ isMobile }) => {
     const {
@@ -112,10 +113,11 @@ const AssholeGamePage = ({ isMobile }) => {
             const isAlreadySelected = prevSelected.some(card => card.id === clickedCard.id);
             if (interruptActive && interruptType === 'three_play') {
                 // If 3-play interrupt is active, only allow selecting 3s
-                if (clickedCard.rank !== 3) {
+                if (clickedCard.numeric_rank !== 3) {
                     alert("During a 3-play interrupt, you can only select 3s."); // Use custom modal
+                    console.log(clickedCard);
                     return prevSelected;
-                }
+                } 
                 // If it's a 3 and already selected, deselect; otherwise, select
                 if (isAlreadySelected) {
                     return prevSelected.filter(card => card.id !== clickedCard.id);
@@ -123,7 +125,7 @@ const AssholeGamePage = ({ isMobile }) => {
                     return [...prevSelected, clickedCard];
                 }
             } else if (interruptActive && interruptType === 'bomb_opportunity') {
-                 if (prevSelected.length > 0 && clickedCard.rank !== prevSelected[0].rank) {
+                 if (prevSelected.length > 0 && clickedCard.numeric_rank !== prevSelected[0].numeric_rank) {
                     alert("To make a bomb interrupt, you must select cards of the same rank.");
                     return prevSelected;
                  }
@@ -138,11 +140,10 @@ const AssholeGamePage = ({ isMobile }) => {
                 if (isAlreadySelected) {
                     return prevSelected.filter(card => card.id !== clickedCard.id);
                 } else {
-                    // Optional: Add logic to only select cards of the same rank for playing a set
-                    // if (prevSelected.length > 0 && clickedCard.rank !== prevSelected[0].rank) {
-                    //     alert("For a normal play, you can only select cards of the same rank.");
-                    //     return prevSelected;
-                    // }
+                    if (prevSelected.length > 0 && clickedCard.numeric_rank !== prevSelected[0].numeric_rank) {
+                        alert("For a normal play, you can only select cards of the same rank.");
+                        return prevSelected;
+                    }
                     return [...prevSelected, clickedCard];
                 }
             }
@@ -193,40 +194,65 @@ const AssholeGamePage = ({ isMobile }) => {
             return;
         }
         if (isInterruptInitiator) {
-             alert("You initiated this interrupt and cannot bid on it.");
-             return;
+            alert("You initiated this interrupt and cannot bid on it.");
+            return;
         }
 
-        let cardsToSubmit = [];
-        if (!isPassing) {
-            cardsToSubmit = selectedCards;
-            if (cardsToSubmit.length === 0) {
-                alert("Please select cards to bid with, or pass.");
-                return;
-            }
-            if (interruptType === 'three_play' && !cardsToSubmit.every(card => card.rank === "3")) {
-                alert("You can only bid with 3s during a three-play interrupt.");
-                return;
-            }
-            if (interruptType === 'bomb_opportunity') {
-                if (!(cardsToSubmit.length === 4 && cardsToSubmit.every(card => card.rank === cardsToSubmit[0].rank))) {
-                    alert("A bomb bid must be exactly 4 cards of the same rank.");
-                    return;
-                }
-                if (cardsToSubmit[0].rank_value !== interruptRank) {
-                    alert(`Bomb bid must be for rank ${Card.getRankDisplay(interruptRank)}.`);
-                    return;
-                }
-            }
+    let cardsToSubmit = [];
+    if (!isPassing) {
+        cardsToSubmit = selectedCards;
+        if (cardsToSubmit.length === 0) {
+            alert("Please select cards to bid with, or pass.");
+            return;
         }
 
-        const result = await submitInterruptBid(cardsToSubmit, isPassing);
-        if (result.success) {
+        // Logic for 'three_play' remains unchanged
+        if (interruptType === 'three_play') {
+            if (!cardsToSubmit.every(card => card.numeric_rank === 3)) {
+                console.log(cardsToSubmit.every(card => card.numeric_rank === 3))
+                return;
+            }
+        }
+        // Logic for 'bomb_opportunity' needs to be adjusted
+        if (interruptType === 'bomb_opportunity') {
+            // Check if the number of cards is between 1 and 3
+            if (cardsToSubmit.length < 1 || cardsToSubmit.length > 3) {
+                alert("For a bomb opportunity, you must play 1, 2, or 3 cards.");
+                return;
+            }
+            // Check if all selected cards are of the correct rank
+            if (!cardsToSubmit.every(card => card.numeric_rank === interruptRank)) {
+                alert(`All selected cards must be of rank ${getRankDisplay(interruptRank)}.`);
+                return;
+            }
+            // Ensure all selected cards are of the same rank (redundant if checking interruptRank, but good for clarity)
+            if (!cardsToSubmit.every(card => card.numeric_rank === cardsToSubmit[0].numeric_rank)) {
+                alert("All selected cards must be of the same rank.");
+                return;
+            }
+        }
+    }
+
+    try {
+        const response = await api.submitInterruptBid(
+            roomCode,
+            playerId,
+            cardsToSubmit,
+            interruptType,
+            interruptRank 
+        );
+
+        if (response.success) {
+            console.log("Interrupt bid submitted successfully:", response.message);
             setSelectedCards([]);
         } else {
-            // Error handling is managed by useGame hook, which updates `error` state
+            alert(response.error || "Failed to submit bid.");
         }
-    }, [interruptActive, interruptType, interruptRank, playersRespondedToInterrupt, playerId, isInterruptInitiator, selectedCards, submitInterruptBid]);
+    } catch (error) {
+        console.error("Error submitting interrupt bid:", error);
+        alert(error.message || "Failed to submit bid.");
+    }
+    }, [roomCode, interruptActive, interruptType, interruptRank, playersRespondedToInterrupt, playerId, isInterruptInitiator, selectedCards]);
 
     const handleStartGame = async () => {
         if (!isHost) {

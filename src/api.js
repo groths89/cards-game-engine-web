@@ -144,8 +144,8 @@ const api = {
      * @param {Array<object> | null} cards The array of cards to bid, or null if passing.
      * @returns {Promise<object>} API response.
      */
-    submitInterruptBid: async (roomCode, playerId, cards) => {
-        return api.makeRequest('/submit_interrupt_bid', { room_code: roomCode, player_id: playerId, cards: cards });
+    submitInterruptBid: async (roomCode, playerId, cards, interruptType, interruptRank) => {
+        return api.makeRequest('/submit_interrupt_bid', { room_code: roomCode, player_id: playerId, cards: cards, interrupt_type: interruptType, interrupt_rank: interruptRank });
     },
     // Add other game-specific API calls here as needed
 };

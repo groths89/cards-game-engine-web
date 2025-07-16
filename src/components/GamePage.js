@@ -145,7 +145,7 @@ const GamePage = ({ children, isMobile }) => {
                                     <span className={`status-light ${player.is_active ? 'active' : 'inactive'}`}></span>
                                 </div>
                                 <span className="player-name">
-                                    {player.name === gameState.current_player && gameState.game_started && (
+                                    {player.id === gameState.current_turn_player_id && gameState.game_started && (
                                         <span className="status-light current-turn-light"></span>
                                     )}  
                                     {player.name}
