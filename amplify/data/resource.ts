@@ -1,17 +1,52 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any unauthenticated user can "create", "read", "update", 
-and "delete" any "Todo" records.
-=========================================================================*/
 const schema = a.schema({
+  // Existing Todo model
   Todo: a
     .model({
       content: a.string(),
     })
     .authorization((allow) => [allow.guest()]),
+
+  // Users table
+  User: a
+    .model({
+      userId: a.id().required(),
+      userType: a.string().default('anonymous'),
+      username: a.string().required(),
+      email: a.string(),
+      createdAt: a.datetime(),
+      lastActive: a.datetime(),
+      gamesPlayed: a.integer().default(0),
+      gamesWon: a.integer().default(0),
+      preferredGameTypes: a.string().array(),
+      userPreferences: a.json(),
+    })
+    .identifier(['userId'])
+    .authorization((allow) => [
+      allow.owner().to(['read', 'update']),
+      allow.authenticated().to(['read']),
+      allow.guest().to(['read'])
+    ]),
+
+  // Game History table
+  GameHistory: a
+    .model({
+      gameId: a.id().required(),
+      userId: a.id().required(),
+      gameType: a.string().required(),
+      playerCount: a.integer(),
+      finalRank: a.integer(),
+      isWinner: a.boolean().default(false),
+      completedAt: a.datetime(),
+      durationMinutes: a.integer(),
+      gameData: a.json(),
+    })
+    .identifier(['gameId', 'userId'])
+    .authorization((allow) => [
+      allow.owner().to(['read', 'create']),
+      allow.authenticated().to(['read']),
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -19,7 +54,10 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'identityPool',
+    defaultAuthorizationMode: 'userPool',
+    apiKeyAuthorizationMode: {
+      expiresInDays: 30,
+    },
   },
 });
 
@@ -51,3 +89,4 @@ Fetch records from the database and use them in your frontend component.
 // const { data: todos } = await client.models.Todo.list()
 
 // return <ul>{todos.map(todo => <li key={todo.id}>{todo.content}</li>)}</ul>
+
