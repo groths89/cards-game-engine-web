@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../../contexts/LocalAuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import './LoginModal.css';
 
 const LoginModal = ({ isOpen, onClose, onSuccess }) => {

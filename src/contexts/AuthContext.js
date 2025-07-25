@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }) => {
             }
         });
 
-        return () => Hub.remove(listener);
+        return () => listener();
     }, [refreshUserAndToken]);
 
     const login = async (username, password) => {
