@@ -38,7 +38,7 @@ import api from '../../api';
 import { useGame } from '../../contexts/GameContext';
 import { useNotifications } from '../../contexts/NotificationsContext';
 import LoginModal from '../auth/LoginModal';
-import { useAuth } from '../../contexts/LocalAuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const formatTimeAgo = (timestamp) => {
     const now = new Date();
