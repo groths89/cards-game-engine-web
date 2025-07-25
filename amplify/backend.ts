@@ -7,9 +7,5 @@ const backend = defineBackend({
   data,
 });
 
-// Add custom DynamoDB configuration if needed
-backend.data.resources.cfnResources.cfnGraphqlApi.addPropertyOverride(
-  'AdditionalAuthenticationProviders.0.AuthenticationType',
-  'AWS_IAM'
-);
+export default backend;
 

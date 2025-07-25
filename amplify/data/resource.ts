@@ -17,8 +17,8 @@ const schema = a.schema({
     })
     .identifier(['userId'])
     .authorization((allow) => [
-      allow.owner('userPools').to(['read', 'update']),
-      allow.authenticated('userPools').to(['read']),
+      allow.owner().to(['read', 'update']),
+      allow.authenticated().to(['read']),
       allow.guest().to(['read'])
     ]),
 
@@ -37,8 +37,8 @@ const schema = a.schema({
     })
     .identifier(['gameId', 'userId'])
     .authorization((allow) => [
-      allow.owner('userPools').to(['read', 'create']),
-      allow.authenticated('userPools').to(['read']),
+      allow.owner().to(['read', 'create']),
+      allow.authenticated().to(['read']),
     ]),
 });
 
