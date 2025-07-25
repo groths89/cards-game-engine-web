@@ -36,12 +36,11 @@ export const LocalAuthProvider = ({ children }) => {
             console.log('fetchUserProfile response data:', data);
 
             if (data.success && data.profile) {
-                // Ensure you're setting the actual profile data
-                setUserProfile(data.profile); // <--- Set the userProfile state here
+                setUserProfile(data.profile);
                 return { success: true, profile: data.profile };
             } else {
                 console.error("Failed to fetch user profile:", data.error);
-                setUserProfile(null); // Clear profile if fetching failed
+                setUserProfile(null);
                 return { success: false, error: data.error };
             }
         } catch (error) {
@@ -49,9 +48,9 @@ export const LocalAuthProvider = ({ children }) => {
             setUserProfile(null);
             return { success: false, error: error.message };
         } finally {
-            setLoading(false); // Reset loading
+            setLoading(false);
         }
-    }, []); // No dependencies needed unless API_BASE_URL or fetch changes
+    }, []);
 
     const signInUser = async (email, password) => {
         setLoading(true);
@@ -121,7 +120,6 @@ export const LocalAuthProvider = ({ children }) => {
         localStorage.removeItem('username');
     };
 
-    // Check for existing session on load
     useEffect(() => {
         const token = localStorage.getItem('auth_token');
         const userId = localStorage.getItem('user_id');

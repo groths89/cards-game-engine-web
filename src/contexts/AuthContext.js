@@ -19,36 +19,6 @@ export const AuthProvider = ({ children }) => {
     const [userProfile, setUserProfile] = useState(null);
     const [idToken, setIdToken] = useState(null);
 
-    const refreshUserAndToken = useCallback(async () => {
-        try {
-            setLoading(true);
-            const cognitoUser = await getCurrentUser();
-            const session = await fetchAuthSession();
-
-            const extractedUser = {
-                userId: cognitoUser.userId,
-                username: cognitoUser.username,
-                email: cognitoUser.signInDetails?.loginId || cognitoUser.attributes?.email,
-            };
-            setUser(extractedUser);
-            setIdToken(session.tokens?.idToken?.toString()); // Store the JWT string
-
-            // Fetch the user profile from your backend using the now-authenticated user ID and token
-            if (extractedUser.userId && session.tokens?.idToken?.toString()) {
-                await fetchUserProfile(extractedUser.userId, session.tokens.idToken.toString());
-            } else {
-                setUserProfile(null);
-            }
-
-        } catch (error) {
-            setUser(null);
-            setIdToken(null);
-            setUserProfile(null);
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchUserProfile]);
-
     const fetchUserProfile = useCallback(async (userId, token) => {
         if (!userId || !token) {
             setUserProfile(null);
@@ -67,7 +37,7 @@ export const AuthProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.profile) {
-                    setUserProfile(data.profile); // <--- This assumes your backend sends { success: true, profile: {...} }
+                    setUserProfile(data.profile);
                     return { success: true, profile: data.profile };
                 } else {
                     setUserProfile(null);
@@ -84,6 +54,34 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const refreshUserAndToken = useCallback(async () => {
+        try {
+            setLoading(true);
+            const cognitoUser = await getCurrentUser();
+            const session = await fetchAuthSession();
+
+            const extractedUser = {
+                userId: cognitoUser.userId,
+                username: cognitoUser.username,
+                email: cognitoUser.signInDetails?.loginId || cognitoUser.attributes?.email,
+            };
+            setUser(extractedUser);
+            setIdToken(session.tokens?.idToken?.toString());
+
+            if (extractedUser.userId && session.tokens?.idToken?.toString()) {
+                await fetchUserProfile(extractedUser.userId, session.tokens.idToken.toString());
+            } else {
+                setUserProfile(null);
+            }
+
+        } catch (error) {
+            setUser(null);
+            setIdToken(null);
+            setUserProfile(null);
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchUserProfile]);
 
     useEffect(() => {
         refreshUserAndToken();
