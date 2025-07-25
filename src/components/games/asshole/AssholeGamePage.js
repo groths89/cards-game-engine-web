@@ -6,6 +6,7 @@ import './AssholeGamePage.css';
 import Hand from "../../game-ui/hands/Hand";
 import Card, { getRankDisplay } from "../../game-ui/cards/Card";
 import api from "../../../api";
+// import GameChat from '../../game-ui/chat/GameChat';
 
 const AssholeGamePage = ({ isMobile }) => {
     const {
@@ -19,6 +20,7 @@ const AssholeGamePage = ({ isMobile }) => {
         playCards,
         passTurn,
         submitInterruptBid,
+        fetchGameState,
         error,
         isLoadingGame,
         chatHistory,
@@ -26,6 +28,7 @@ const AssholeGamePage = ({ isMobile }) => {
     } = useGame();
 
     const [selectedCards, setSelectedCards] = useState([]);
+    // const [isChatVisible, setIsChatVisible] = useState(false);
 
     const yourHand = gameState?.your_hand || [];
 
@@ -91,6 +94,7 @@ const AssholeGamePage = ({ isMobile }) => {
                 setTimeLeft(Math.max(0, Math.floor(remaining)));
                 if (remaining <= 0) {
                     clearInterval(timerInterval);
+                    fetchGameState();
                 }
             }, 1000);
         } else {
@@ -98,7 +102,7 @@ const AssholeGamePage = ({ isMobile }) => {
         }
 
         return () => clearInterval(timerInterval);
-    }, [interruptActive, interruptActiveUntil]);
+    }, [interruptActive, interruptActiveUntil, fetchGameState]);
 
     const opponentHands = allPlayersData
         .filter(player => player.id !== playerId)
@@ -115,7 +119,6 @@ const AssholeGamePage = ({ isMobile }) => {
                 // If 3-play interrupt is active, only allow selecting 3s
                 if (clickedCard.numeric_rank !== 3) {
                     alert("During a 3-play interrupt, you can only select 3s."); // Use custom modal
-                    console.log(clickedCard);
                     return prevSelected;
                 } 
                 // If it's a 3 and already selected, deselect; otherwise, select
@@ -209,7 +212,6 @@ const AssholeGamePage = ({ isMobile }) => {
         // Logic for 'three_play' remains unchanged
         if (interruptType === 'three_play') {
             if (!cardsToSubmit.every(card => card.numeric_rank === 3)) {
-                console.log(cardsToSubmit.every(card => card.numeric_rank === 3))
                 return;
             }
         }
@@ -243,7 +245,6 @@ const AssholeGamePage = ({ isMobile }) => {
         );
 
         if (response.success) {
-            console.log("Interrupt bid submitted successfully:", response.message);
             setSelectedCards([]);
         } else {
             alert(response.error || "Failed to submit bid.");
@@ -267,193 +268,195 @@ const AssholeGamePage = ({ isMobile }) => {
     };
 
     return (
-        <div className="asshole-game-board-wrapper">
-            {/* Main Game Content Area */}
-            <div className="game-board-layout">
-                {!isMobile && (
-                    {/* Top Players Area (Opponents) */},
-                    <div className="top-players" style={{ gridArea: 'top-players' }}>
-                        {opponentHands.map(player => (
-                            <div key={player.id} className={`opponent-display ${player.id === currentTurnPlayerId ? 'current-turn' : ''}`}>
-                                <div className="opponent-info">
-                                    <span className="opponent-name">{player.name}</span>
-                                    <span className="opponent-cards-count">{player.hand_size} cards</span>
+        <div className="asshole-game-page">
+            <div className="asshole-game-board-wrapper">
+                {/* Main Game Content Area */}
+                <div className="game-board-layout">
+                    {!isMobile && (
+                        {/* Top Players Area (Opponents) */},
+                        <div className="top-players" style={{ gridArea: 'top-players' }}>
+                            {opponentHands.map(player => (
+                                <div key={player.id} className={`opponent-display ${player.id === currentTurnPlayerId ? 'current-turn' : ''}`}>
+                                    <div className="opponent-info">
+                                        <span className="opponent-name">{player.name}</span>
+                                        <span className="opponent-cards-count">{player.hand_size} cards</span>
+                                    </div>
+                                    <div className="opponent-cards">
+                                        {Array.from({ length: player.hand_size }).map((_, i) => (
+                                            // Render a generic face-down card for each card in opponent's hand
+                                            <Card key={`${player.id}-card-${i}`} isFaceDown={true} />
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="opponent-cards">
-                                    {Array.from({ length: player.hand_size }).map((_, i) => (
-                                        // Render a generic face-down card for each card in opponent's hand
-                                        <Card key={`${player.id}-card-${i}`} isFaceDown={true} />
-                                    ))}
+                            ))}
+                        </div>                    
+                    )}
+
+
+                    {/* Main Play Area (Pile, Last Played Cards) */}
+                    <div className="main-area" style={{ gridArea: 'main-area' }}>
+                        {/* Pile Area */}
+                        <div className="pile-area">
+                            {isClearingAnimationActive && (
+                                <div className="animating-pile-clear">
+                                    {animatingClearCards.slice(-4).map((cardObject, index) => {
+                                        const randomX = (Math.random() - 0.5) * 400; // -200px to +200px horizontal spread
+                                        const randomY = (Math.random() - 0.5) * 300; // -150px to +150px vertical spread
+                                        const randomRotate = (Math.random() - 0.5) * 720; // -360deg to +360deg rotation
+
+                                        return (
+                                            <Card
+                                                key={`animating-${cardObject.id || `${cardObject.rank}-${cardObject.suit}-${index}`}`}
+                                                rank={cardObject.rank}
+                                                suit={cardObject.suit}
+                                                isFaceUp={true}
+                                                className="card-clear-animation"
+                                                style={{
+                                                    animationDelay: `${index * 80}ms`,
+                                                    '--end-x': `${randomX}px`,
+                                                    '--end-y': `${randomY}px`,
+                                                    '--end-rotate': `${randomRotate}deg`,
+                                                }}
+                                            />
+                                        );
+                                    })}
                                 </div>
+                            )}
+
+                            {/* Render the actual pile cards ONLY when animation is NOT active */}
+                            {!isClearingAnimationActive && (pileCards.length > 0 ? (
+                                <>
+                                    <h4>Current Pile</h4>
+                                    <div className="pile-cards-display">
+                                        {pileCards.slice(-4).map((cardObject, index) => (
+                                            <Card
+                                                key={cardObject.id || `${cardObject.rank}-${cardObject.suit}-${index}`}
+                                                rank={cardObject.rank}
+                                                suit={cardObject.suit}
+                                                isFaceUp={true} // Pile cards are always face up
+                                            />
+                                        ))}
+                                    </div>
+                                    <p className="pile-info">
+                                        Play: {gameState.current_play_count || 0} of {gameState.current_play_rank || 'N/A'}
+                                    </p>
+                                </>
+                            ) : (
+                                <p className="no-pile-message">No cards on the pile. Lead a new round!</p>
+                            ))}
+                        </div>
+                    
+                        {interruptActive && (
+                            <div className="interrupt-overlay">
+                                <h3>{interruptType === 'three_play' ? '3-Play Interrupt!' : 'Bomb Opportunity!'}</h3>
+                                <p>{gameState?.game_message}</p>
+                                <p>Time Left: {timeLeft}s</p>
+                                
+                                {/* Display current bids */}
+                                {interruptBids.length > 0 && (
+                                    <div className="current-interrupt-bids">
+                                        <h4>Current Bids:</h4>
+                                        <ul>
+                                            {interruptBids.map((bid, idx) => (
+                                                <li key={idx}>
+                                                    {getPlayerNameById(bid.player_id)}: {bid.cards.length} x {bid.cards[0]?.rank_display || bid.cards[0]?.rank}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Display who has responded */}
+                                {gameState?.players && gameState.players.length > 1 && (
+                                    <p>Responded: {Array.from(playersRespondedToInterrupt).map(id => getPlayerNameById(id)).join(', ')}</p>
+                                )}
+
+                                {/* Interrupt Action Buttons (only for players who can respond) */}
+                                {
+                                    // Show these buttons IF:
+                                    // 1. An interrupt is active
+                                    // 2. The current player HAS NOT already responded
+                                    // 3. The current player IS NOT the one who initiated the interrupt
+                                    interruptActive && 
+                                    !playersRespondedToInterrupt.has(playerId) && 
+                                    !isInterruptInitiator && (
+                                    <div className="interrupt-actions">
+                                        <button
+                                            onClick={() => handleInterruptAction(false)}
+                                            className="button primary-action"
+                                            disabled={isLoadingGame || selectedCards.length === 0}
+                                        >
+                                            Bid ({selectedCards.length})
+                                        </button>
+                                        <button
+                                            onClick={() => handleInterruptAction(true)}
+                                            className="button secondary-action"
+                                            disabled={isLoadingGame}
+                                        >
+                                            Pass Interrupt
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        ))}
-                    </div>                    
+                        )}                
+                    </div>
+
+                    {/* Left/Right Side Players (Currently commented out in your structure, but grid areas are reserved) */}
+                    {/* <div className="left-side" style={{ gridArea: 'left-side' }}></div> */}
+                    {/* <div className="right-side" style={{ gridArea: 'right-side' }}></div> */}
+
+                    {/* Player Hand Area (Bottom) with Hand component */}
+                    <div className="player-hand-area" style={{ gridArea: 'player-hand' }}>
+                        <Hand
+                            cards={yourHand}
+                            onCardClick={handleCardClick}
+                            selectedCards={selectedCards}
+                            isMobile={isMobile} // Pass isMobile from GamePage
+                        />
+                    </div>
+
+                    {/* Controls Area (Play/Pass/Interrupt) */}
+                    <div className="controls-area" style={{ gridArea: 'controls' }}>
+                        <div className="game-board-actions">
+                            {gameState?.game_started && (
+                                <div className="player-turn-actions">
+                                    <button
+                                        onClick={handlePlayCards}
+                                        className="button primary-action play-button"
+                                        disabled={!isYourTurn || selectedCards.length === 0 || isLoadingGame}
+                                    >
+                                        PLAY ({selectedCards.length})
+                                    </button>
+                                    <button
+                                        onClick={handlePassTurn}
+                                        className="button primary-action pass-button"
+                                        disabled={!isYourTurn || pileCards.length === 0 || isLoadingGame}
+                                    >
+                                        PASS
+                                    </button>                               
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+                </div>
+
+                {/* Start Game Button (outside the main grid, positioned below) */}
+                {!gameState?.game_started && isHost && (
+                    <div className="start-game-button-container">
+                        <button
+                            onClick={handleStartGame}
+                            disabled={!canStartGame || isLoadingGame}
+                            className="button start-game-button"
+                        >
+                            Start Game ({allPlayersData.length}/{(gameState?.MIN_PLAYERS || 0)} players)
+                        </button>
+                    </div>
                 )}
 
-
-                {/* Main Play Area (Pile, Last Played Cards) */}
-                <div className="main-area" style={{ gridArea: 'main-area' }}>
-                    {/* Pile Area */}
-                    <div className="pile-area">
-                        {isClearingAnimationActive && (
-                            <div className="animating-pile-clear">
-                                {animatingClearCards.slice(-4).map((cardObject, index) => {
-                                    const randomX = (Math.random() - 0.5) * 400; // -200px to +200px horizontal spread
-                                    const randomY = (Math.random() - 0.5) * 300; // -150px to +150px vertical spread
-                                    const randomRotate = (Math.random() - 0.5) * 720; // -360deg to +360deg rotation
-
-                                    return (
-                                        <Card
-                                            key={`animating-${cardObject.id || `${cardObject.rank}-${cardObject.suit}-${index}`}`}
-                                            rank={cardObject.rank}
-                                            suit={cardObject.suit}
-                                            isFaceUp={true}
-                                            className="card-clear-animation"
-                                            style={{
-                                                animationDelay: `${index * 80}ms`,
-                                                '--end-x': `${randomX}px`,
-                                                '--end-y': `${randomY}px`,
-                                                '--end-rotate': `${randomRotate}deg`,
-                                            }}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        {/* Render the actual pile cards ONLY when animation is NOT active */}
-                        {!isClearingAnimationActive && (pileCards.length > 0 ? (
-                            <>
-                                <h4>Current Pile</h4>
-                                <div className="pile-cards-display">
-                                    {pileCards.slice(-4).map((cardObject, index) => (
-                                        <Card
-                                            key={cardObject.id || `${cardObject.rank}-${cardObject.suit}-${index}`}
-                                            rank={cardObject.rank}
-                                            suit={cardObject.suit}
-                                            isFaceUp={true} // Pile cards are always face up
-                                        />
-                                    ))}
-                                </div>
-                                <p className="pile-info">
-                                    Play: {gameState.current_play_count || 0} of {gameState.current_play_rank || 'N/A'}
-                                </p>
-                            </>
-                        ) : (
-                            <p className="no-pile-message">No cards on the pile. Lead a new round!</p>
-                        ))}
-                    </div>
-                
-                    {interruptActive && (
-                        <div className="interrupt-overlay">
-                            <h3>{interruptType === 'three_play' ? '3-Play Interrupt!' : 'Bomb Opportunity!'}</h3>
-                            <p>{gameState?.game_message}</p>
-                            <p>Time Left: {timeLeft}s</p>
-                            
-                            {/* Display current bids */}
-                            {interruptBids.length > 0 && (
-                                <div className="current-interrupt-bids">
-                                    <h4>Current Bids:</h4>
-                                    <ul>
-                                        {interruptBids.map((bid, idx) => (
-                                            <li key={idx}>
-                                                {getPlayerNameById(bid.player_id)}: {bid.cards.length} x {bid.cards[0]?.rank_display || bid.cards[0]?.rank}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {/* Display who has responded */}
-                            {gameState?.players && gameState.players.length > 1 && (
-                                <p>Responded: {Array.from(playersRespondedToInterrupt).map(id => getPlayerNameById(id)).join(', ')}</p>
-                            )}
-
-                            {/* Interrupt Action Buttons (only for players who can respond) */}
-                            {
-                                // Show these buttons IF:
-                                // 1. An interrupt is active
-                                // 2. The current player HAS NOT already responded
-                                // 3. The current player IS NOT the one who initiated the interrupt
-                                interruptActive && 
-                                !playersRespondedToInterrupt.has(playerId) && 
-                                !isInterruptInitiator && (
-                                <div className="interrupt-actions">
-                                    <button
-                                        onClick={() => handleInterruptAction(false)}
-                                        className="button primary-action"
-                                        disabled={isLoadingGame || selectedCards.length === 0}
-                                    >
-                                        Bid ({selectedCards.length})
-                                    </button>
-                                    <button
-                                        onClick={() => handleInterruptAction(true)}
-                                        className="button secondary-action"
-                                        disabled={isLoadingGame}
-                                    >
-                                        Pass Interrupt
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}                
-                </div>
-
-                {/* Left/Right Side Players (Currently commented out in your structure, but grid areas are reserved) */}
-                {/* <div className="left-side" style={{ gridArea: 'left-side' }}></div> */}
-                {/* <div className="right-side" style={{ gridArea: 'right-side' }}></div> */}
-
-                {/* Player Hand Area (Bottom) with Hand component */}
-                <div className="player-hand-area" style={{ gridArea: 'player-hand' }}>
-                    <Hand
-                        cards={yourHand}
-                        onCardClick={handleCardClick}
-                        selectedCards={selectedCards}
-                        isMobile={isMobile} // Pass isMobile from GamePage
-                    />
-                </div>
-
-                {/* Controls Area (Play/Pass/Interrupt) */}
-                <div className="controls-area" style={{ gridArea: 'controls' }}>
-                    <div className="game-board-actions">
-                        {gameState?.game_started && (
-                            <div className="player-turn-actions">
-                                <button
-                                    onClick={handlePlayCards}
-                                    className="button primary-action play-button"
-                                    disabled={!isYourTurn || selectedCards.length === 0 || isLoadingGame}
-                                >
-                                    PLAY ({selectedCards.length})
-                                </button>
-                                <button
-                                    onClick={handlePassTurn}
-                                    className="button primary-action pass-button"
-                                    disabled={!isYourTurn || pileCards.length === 0 || isLoadingGame}
-                                >
-                                    PASS
-                                </button>                               
-                            </div>
-                        )}
-
-                    </div>
-                </div>
+                {/* Error message (from context) */}
+                {error && <p className="error-message">{error}</p>}
             </div>
-
-            {/* Start Game Button (outside the main grid, positioned below) */}
-            {!gameState?.game_started && isHost && (
-                <div className="start-game-button-container">
-                    <button
-                        onClick={handleStartGame}
-                        disabled={!canStartGame || isLoadingGame}
-                        className="button start-game-button"
-                    >
-                        Start Game ({allPlayersData.length}/{(gameState?.MIN_PLAYERS || 0)} players)
-                    </button>
-                </div>
-            )}
-
-            {/* Error message (from context) */}
-            {error && <p className="error-message">{error}</p>}
         </div>
     );
 }

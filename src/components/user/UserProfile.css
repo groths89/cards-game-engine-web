@@ -1,0 +1,366 @@
+:root {
+  /* Colors */
+  --bg-primary: #283747; /* Main dark background */
+  --bg-card: #364a5f; /* Lighter background for cards/sections */
+  --text-primary: #f8f8f8; /* Main text color */
+  --text-secondary: #b0b0b0; /* Secondary text color (e.g., descriptions) */
+  --border-default: #4a5c70; /* Subtle border color */
+  --action-primary: #3498db; /* Blue for primary actions/highlights */
+  --action-hover: #2980b9; /* Darker blue on hover */
+  --color-white: #ffffff; /* Pure white */
+  --color-green: #27ae60; /* Green for progress/success */
+  --color-red: #e74c3c; /* Red for destructive actions */
+  --color-yellow: #f1c40f; /* Yellow for stats or accents */
+  --color-purple: #9b59b6; /* Purple for icons */
+  --color-teal: #1abc9c; /* Teal for icons */
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Border Radius */
+  --border-radius-default: 8px;
+  --border-radius-lg: 12px;
+}
+
+body {
+  background-color: var(--bg-primary); /* Apply main background to body */
+  color: var(--text-primary);
+  font-family:
+    "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Or your chosen font */
+}
+
+/* UserProfile.css */
+
+.user-profile {
+  max-width: 700px;
+  margin: var(--spacing-xl) auto;
+  padding: 0 var(--spacing-md); /* Add horizontal padding here for smaller screens */
+  background: transparent;
+  border-radius: var(--border-radius-default);
+  overflow-x: hidden; /* Hide horizontal scrollbar if it still appears due to minor overflow */
+}
+
+.user-profile h2 {
+  color: var(--text-primary);
+  margin: var(--spacing-xl) 0 var(--spacing-lg) 0; /* Spacing for the main heading */
+  text-align: center;
+  font-size: 2em; /* Larger main heading */
+}
+
+/* Base style for all sections (header, stats, preferences) */
+.profile-section {
+  background: var(--bg-card);
+  border-radius: var(--border-radius-default);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg); /* Maintain padding inside each section */
+  border: 1px solid var(--border-default);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.profile-section:last-of-type {
+  margin-bottom: 0; /* No margin after the last section */
+}
+
+.profile-section h3 {
+  color: var(--text-primary);
+  margin-top: 0; /* Remove default top margin */
+  margin-bottom: var(--spacing-md);
+  font-size: 1.2rem; /* Slightly larger heading for sections */
+  display: flex; /* For icon alignment */
+  align-items: center;
+  gap: var(--spacing-sm); /* Space between icon and text */
+}
+
+/* Specific styles for the Profile Header section */
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  /* Allow content to wrap if it gets too narrow */
+  flex-wrap: wrap; /* NEW: Allow header content to wrap */
+  justify-content: center; /* Center items when wrapped */
+  text-align: center; /* Center text when wrapped */
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: var(--spacing-lg);
+  border: 3px solid var(--action-primary);
+  flex-shrink: 0;
+  /* On small screens, center the avatar and remove right margin */
+  margin-bottom: var(--spacing-sm); /* NEW: Add bottom margin when wrapping */
+}
+
+@media (max-width: 480px) {
+  .profile-avatar {
+    margin-right: 0; /* Remove right margin on very small screens */
+    margin-left: 0;
+    margin-top: 0;
+    margin-bottom: var(
+      --spacing-md
+    ); /* More space below avatar when centered */
+  }
+}
+
+.profile-info {
+  flex-grow: 1; /* Allow info section to take available space */
+  /* If avatar wraps, ensure info text is centered */
+  text-align: left; /* Default text alignment */
+}
+
+@media (max-width: 480px) {
+  .profile-info {
+    text-align: center; /* NEW: Center text when avatar wraps above it */
+  }
+}
+
+.profile-avatar .avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures image covers the circle */
+  display: block;
+}
+
+.profile-info h1 {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.8em; /* Username size */
+}
+
+.profile-info .user-type {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-bottom: var(--spacing-sm);
+}
+
+.level-info {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.level-progress-bar {
+  width: 100%;
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0.3); /* Darker track for progress */
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: var(--spacing-xs);
+}
+
+.level-progress-fill {
+  height: 100%;
+  background-color: var(--color-green); /* Green progress bar */
+  border-radius: 5px;
+  transition: width 0.5s ease-in-out;
+}
+
+/* Statistics section */
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--spacing-md);
+  flex-wrap: wrap; /* IMPORTANT: Allow stat cards to wrap onto new lines */
+  margin-top: var(--spacing-md);
+}
+
+.stat-card {
+  background-color: transparent;
+  padding: var(--spacing-sm);
+  text-align: center;
+  flex: 1 1 calc(33.33% - var(--spacing-md)); /* Allow 3 cards per row, shrinking and growing */
+  min-width: 100px; /* Adjusted min-width slightly if needed, but flex-basis is more important */
+  max-width: calc(
+    33.33% - var(--spacing-md)
+  ); /* Max width for 3 cards per row */
+  border-radius: var(--border-radius-default);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box; /* Ensure padding/border don't cause overflow */
+}
+
+.stat-card .svg-inline--fa {
+  /* FontAwesome icon selector */
+  font-size: 2.2em; /* Larger icons */
+  color: var(--action-primary); /* Use a consistent accent color for icons */
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-info h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.6em; /* Make numbers stand out */
+  color: var(--color-yellow); /* Yellow for stat numbers */
+  font-weight: 700;
+}
+
+.stat-info p {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  /* Adjust breakpoint as needed */
+  .stat-card {
+    flex: 1 1 calc(50% - var(--spacing-md)); /* Two cards per row */
+    max-width: calc(50% - var(--spacing-md));
+  }
+}
+
+@media (max-width: 400px) {
+  /* Even smaller screens, one card per row */
+  .stat-card {
+    flex: 1 1 100%; /* One card per row */
+    max-width: 100%;
+  }
+}
+
+/* Preferences section */
+.preferences-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.preferences-form label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.preferences-form input[type="checkbox"] {
+  /* Custom checkbox styling (basic) */
+  appearance: none; /* Hide default checkbox */
+  width: 20px; /* Size of custom checkbox */
+  height: 20px;
+  border: 2px solid var(--border-default);
+  border-radius: 4px; /* Slightly rounded corners for checkbox */
+  background-color: var(--bg-primary); /* Background when unchecked */
+  display: inline-block;
+  position: relative;
+  flex-shrink: 0; /* Prevent checkbox from shrinking */
+}
+
+.preferences-form input[type="checkbox"]:checked {
+  background-color: var(--action-primary); /* Blue when checked */
+  border-color: var(--action-primary);
+}
+
+.preferences-form input[type="checkbox"]:checked::after {
+  content: "\2713"; /* Checkmark character */
+  font-size: 14px;
+  color: var(--color-white);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Form Group (if used for future form elements) */
+.form-group label {
+  font-weight: normal; /* Override 600 from general form-group label */
+}
+
+.form-group input {
+  background: var(--bg-primary); /* Input background should be darker */
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+}
+
+/* Profile Actions (Buttons) */
+.profile-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-top: var(--spacing-lg);
+  flex-wrap: wrap; /* NEW: Allow buttons to wrap on smaller screens */
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-default);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1em;
+  flex-grow: 1; /* Allow buttons to grow to fill space */
+  flex-basis: auto; /* Default flex basis */
+  min-width: 140px; /* Ensure buttons don't get too small */
+}
+
+/* Adjust buttons for smaller screens */
+@media (max-width: 480px) {
+  .btn-primary,
+  .btn-secondary {
+    flex-basis: 100%; /* Make buttons full width on very small screens */
+    max-width: 100%; /* Ensure they don't grow beyond container */
+  }
+}
+
+.btn-primary {
+  background: var(--action-primary);
+  color: var(--color-white);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--action-hover);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* Styling for the login prompt */
+.user-profile-container {
+  /* This is the fallback container */
+  background-color: var(--bg-card); /* Consistent background */
+  color: var(--text-primary);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-default);
+  max-width: 600px;
+  margin: var(--spacing-xl) auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  text-align: center; /* Center the content */
+  border: 1px solid var(--border-default);
+}
+
+.login-prompt .svg-inline--fa {
+  /* FontAwesome icon in login prompt */
+  font-size: 4em; /* Larger icon */
+  color: var(--text-secondary); /* Muted color for the icon */
+  margin-bottom: var(--spacing-md);
+}
+
+.login-prompt h2 {
+  font-size: 1.8em;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+}
+
+.login-prompt p {
+  font-size: 1.1em;
+  color: var(--text-secondary);
+}

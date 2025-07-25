@@ -3,11 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGame } from '../contexts/GameContext';
 import './GamePage.css';
+import GameChat from './game-ui/chat/GameChat';
 
 const GamePage = ({ children, isMobile }) => {
     const {
-        roomCode, playerId, isHost,
+        socket,
+        roomCode, 
+        playerId, 
+        isHost,
         gameState,
+        chatHistory,  // Make sure this is destructured
         fetchGameState,
         leaveRoom,
         deleteRoom,
@@ -20,6 +25,11 @@ const GamePage = ({ children, isMobile }) => {
 
     const [minPlayersRequired, setMinPlayersRequired] = useState(0);
     const [maxPlayersAllowed, setMaxPlayersAllowed] = useState(0);
+    const [isChatVisible, setIsChatVisible] = useState(false);
+
+    useEffect(() => {
+        console.log('GamePage: chatHistory updated:', chatHistory);
+    }, [chatHistory]);
 
     const handleLeaveRoom = async () => {
         if (window.confirm("Are you sure you want to leave this room?")) {
@@ -36,7 +46,6 @@ const GamePage = ({ children, isMobile }) => {
 
     useEffect(() => {
         if (roomCode && playerId && !gameState) {
-            console.log("GamePage: Initial fetch of game state...");
             fetchGameState();
         } else if (!roomCode && !isLoadingGame) {
             console.warn("GamePage: No roomCode found or room deleted. Redirecting to home.");
@@ -164,6 +173,16 @@ const GamePage = ({ children, isMobile }) => {
 
             {/* Game Messages */}
             {gameState.game_message && <p className="game-message">{gameState.game_message}</p>}
+
+            {/* Add GameChat as global component */}
+            <GameChat
+                socket={socket}
+                roomCode={roomCode}
+                chatHistory={chatHistory}
+                isVisible={isChatVisible}
+                onToggle={() => setIsChatVisible(!isChatVisible)}
+                isMobile={isMobile}
+            />
 
             {/* Render game-specific content passed as children */}
             {/* The child component (e.g., AssholeGamePage) will get its props from context now */}

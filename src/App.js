@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, BrowserRouter } from 'react-router-dom';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -11,6 +11,16 @@ import GameLobbyPage from './components/GameLobbyPage';
 import GamePage from './components/GamePage';
 import AssholeGamePage from './components/games/asshole/AssholeGamePage';
 import AppHeader from './components/layout/AppHeader';
+import RulesPage from './pages/RulesPage';
+import LeaderboardsPage from './pages/LeaderboardsPage';
+import StatisticsPage from './pages/StatisticsPage';
+import SettingsPage from './pages/SettingsPage';
+import TournamentsPage from './pages/TournamentsPage';
+import './pages/PageStyles.css';
+import UserProfile from './components/user/UserProfile';
+
+import { GameProvider } from './contexts/GameContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 
 const useIsMobile = (breakpoint = 768) => {
     const [isMobile, setIsMobile] = useState(false);
@@ -73,6 +83,12 @@ function App() {
             <Route path="/lobby/:gameType" element={<GameLobbyPage />} />
             {/* Route for the game board route, with gameType parameter and roomCode parameter */}
             <Route path="/game/:gameType/:roomCode" element={<GamePage isMobile={isMobile}><AssholeGamePage isMobile={isMobile}/></GamePage>} />
+            <Route path="/rules" element={<RulesPage />} />
+            <Route path="/leaderboards" element={<LeaderboardsPage />} />
+            <Route path="/statistics" element={<StatisticsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/tournaments" element={<TournamentsPage />} />
+            <Route path="/profile" element={<UserProfile />} />
 
             {/* TODO: Add more game routes as they are implemented */}
           </Routes>
@@ -84,3 +100,7 @@ function App() {
 }
 
 export default App;
+
+
+
+

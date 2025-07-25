@@ -20,17 +20,30 @@ const api = {
                 },
             };
 
-            // Only add body for methods that typically have one (POST, PUT, PATCH)
             if (method !== 'GET' && method !== 'HEAD') {
                 config.body = JSON.stringify(data);
             }
 
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+            const fullUrl = `${API_BASE_URL}${endpoint}`;
+            console.log(`Making ${method} request to: ${fullUrl}`);
+            
+            const response = await fetch(fullUrl, config);
+            
+            console.log(`Response status: ${response.status}`);
+            console.log(`Response headers:`, response.headers);
+
+            // Check if response is actually JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const textResponse = await response.text();
+                console.error(`Expected JSON but got: ${contentType}`);
+                console.error(`Response body: ${textResponse.substring(0, 200)}...`);
+                return { success: false, error: 'Server returned non-JSON response' };
+            }
 
             const responseData = await response.json();
 
             if (!response.ok) {
-                // If response is not OK (e.g., 4xx or 5xx status)
                 console.error(`API Error for ${endpoint}:`, responseData.error || 'Unknown error');
                 return { success: false, error: responseData.error || 'An unexpected error occurred.' };
             }
@@ -148,6 +161,30 @@ const api = {
         return api.makeRequest('/submit_interrupt_bid', { room_code: roomCode, player_id: playerId, cards: cards, interrupt_type: interruptType, interrupt_rank: interruptRank });
     },
     // Add other game-specific API calls here as needed
+
+    /**
+     * Gets user profile and stats
+     * @param {string} playerId The player ID (optional, uses session if not provided)
+     * @returns {Promise<object>} API response with user profile
+     */
+    getUserProfile: async (playerId = '') => {
+        const query = playerId ? `?player_id=${playerId}` : '';
+        return api.makeRequest(`/user_profile${query}`, {}, 'GET');
+    },
+
+    /**
+     * Gets user's game history
+     * @param {string} playerId The player ID (optional, uses session if not provided)
+     * @param {number} limit Number of recent games to fetch
+     * @returns {Promise<object>} API response with game history
+     */
+    getUserGameHistory: async (playerId = '', limit = 10) => {
+        const query = new URLSearchParams();
+        if (playerId) query.append('player_id', playerId);
+        query.append('limit', limit.toString());
+        
+        return api.makeRequest(`/user_game_history?${query}`, {}, 'GET');
+    },
 };
 
 export default api;

@@ -118,16 +118,17 @@
 @media (max-width: 768px) {
   .player-hand-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    width: 38%;
-    padding: 0 0;
+    width: 100%; /* Change from 38% to full width */
+    padding: var(--spacing-sm) var(--spacing-md);
     height: 160px;
     margin-bottom: var(--spacing-sm);
   }
 
   .hand-cards-wrapper {
     flex-grow: 1;
+    width: 100%;
   }
 
   .card-wrapper {

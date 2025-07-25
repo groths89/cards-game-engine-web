@@ -148,7 +148,10 @@ export const GameProvider = ({ children }) => {
                 localStorage.setItem('player_name', response.player_name);
                 localStorage.setItem('isHost', 'true');
 
-                socket.emit('join_game_room_socket', { room_code: response.room_code, player_id: response.player_id });
+                socket.emit('join_game_room_socket', { 
+                    room_code: response.room_code, 
+                    player_id: response.player_id 
+                });
                 console.log(`Emitted join_game_room_socket for room: ${response.room_code}`);
 
                 navigate(`/game/${gameType}/${response.room_code}`);
@@ -184,7 +187,10 @@ export const GameProvider = ({ children }) => {
                 localStorage.setItem('player_name', response.player_name);
                 localStorage.setItem('isHost', (response.game_state.host_id === response.player_id).toString());
 
-                socket.emit('join_game_room_socket', { room_code: code, player_id: response.player_id });
+                socket.emit('join_game_room_socket', { 
+                    room_code: code, 
+                    player_id: response.player_id 
+                });
                 console.log(`Emitted join_game_room_socket for room: ${code}`);
 
                 navigate(`/game/${response.game_type || 'asshole'}/${code}`);
@@ -390,7 +396,10 @@ export const GameProvider = ({ children }) => {
             console.log('Socket connected:', socket.id);
             if (playerIdRef.current && roomCodeRef.current) {
                 console.log(`Attempting to re-join WebSocket room ${roomCodeRef.current} for player ${playerIdRef.current}`);
-                socket.emit('join_game_room_socket', { room_code: roomCodeRef.current});
+                socket.emit('join_game_room_socket', { 
+                    room_code: roomCodeRef.current, 
+                    player_id: playerIdRef.current  // Always send player_id
+                });
             } else {
                 getActiveRooms();
             }
@@ -420,7 +429,17 @@ export const GameProvider = ({ children }) => {
 
         const onReceiveChatMessage = (data) => {
             console.log('Received chat message:', data);
-            setChatHistory(prev => [...prev, { sender: data.sender, message: data.message }]);
+            setChatHistory(prev => {
+                const newHistory = [...prev, {
+                    sender: data.sender,
+                    senderId: data.senderId,
+                    message: data.message,
+                    timestamp: data.timestamp,
+                    senderProfile: data.senderProfile
+                }];
+                console.log('Updated chatHistory:', newHistory);
+                return newHistory;
+            });
         };
 
         const onRoomDeleted = (data) => {
@@ -506,10 +525,11 @@ export const GameProvider = ({ children }) => {
         interruptRank: gameState?.interrupt_rank || null,
         interruptBids: gameState?.interrupt_bids || [],
     }), [
+        socket,
         roomCode, playerId, playerName, isHost, isConnected, gameState, error, lobbyRooms,
         createNewRoom, joinExistingRoom, leaveRoom, deleteRoom, getActiveRooms,
         startGame, playCards, passTurn, fetchGameState, setError, setGameState, submitInterruptBid, isLoadingGame, isFetchingRooms,
-        setPlayerInfo, setChatHistory
+        setPlayerInfo, setChatHistory, chatHistory
     ]);
 
     return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
