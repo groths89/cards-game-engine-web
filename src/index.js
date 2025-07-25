@@ -8,7 +8,7 @@ import { GameProvider } from './contexts/GameContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { Amplify } from 'aws-amplify';
-import outputs from '../amplify_outputs.json';
+import outputs from './amplify_outputs.json';
 
 Amplify.configure(outputs);
 
