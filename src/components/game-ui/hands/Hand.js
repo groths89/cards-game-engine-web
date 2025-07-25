@@ -5,7 +5,6 @@ import Card from "../cards/Card";
 import './Hand.css';
 
 const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
-        console.log('Hand component rendered. isMobile prop:', isMobile);
         const handCardsScrollRef = useRef(null);
 
         const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -61,6 +60,33 @@ const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
             }
         }, [cards, checkArrows, isMobile]);
     
+    // Sort cards by rank (and optionally by suit within same rank)
+    const sortedCards = [...cards].sort((a, b) => {
+        // Convert ranks to numeric values for proper sorting
+        const getRankValue = (rank) => {
+            if (typeof rank === 'number') return rank;
+            const rankStr = rank.toString();
+            switch(rankStr) {
+                case 'J': return 11;
+                case 'Q': return 12;
+                case 'K': return 13;
+                case 'A': return 14;
+                default: return parseInt(rankStr) || 0;
+            }
+        };
+        
+        const rankA = getRankValue(a.rank);
+        const rankB = getRankValue(b.rank);
+        
+        if (rankA !== rankB) {
+            return rankA - rankB;
+        }
+        
+        // If same rank, sort by suit using the actual suit codes
+        const suitOrder = { 'H': 0, 'D': 1, 'C': 2, 'S': 3 };
+        return suitOrder[a.suit] - suitOrder[b.suit];
+    });
+
     return (
         <div className="player-hand-container">
             {/* Left Scroll Arrow (Visibility controlled by CSS via display: none/flex) */}
@@ -73,18 +99,22 @@ const Hand = ({cards, onCardClick, selectedCards, isMobile}) => {
             {/* Scrollable Hand Cards Wrapper - This is the element that actually scrolls */}
             <div className="hand-cards-wrapper" ref={handCardsScrollRef}>
                 <div className="hand-cards">
-                    {cards.map((cardData, index) => {
-                        const isCardSelected = selectedCards && selectedCards.some(
-                            (selectedCardObject) => selectedCardObject.id === cardData.id,
+                    {sortedCards.map((card, index) => {
+                        const isSelected = selectedCards.some(selectedCard => 
+                            selectedCard.suit === card.suit && selectedCard.rank === card.rank
                         );
-
+                        
                         return (
                             <div
-                                key={cardData.id || `${cardData.rank}-${cardData.suit}-${index}`}
-                                className={`card-wrapper ${isCardSelected ? 'selected' : ''}`}
-                                onClick={() => onCardClick(cardData)}
+                                key={`${card.suit}-${card.rank}-${index}`}
+                                className={`card-wrapper ${isSelected ? 'selected' : ''}`}
+                                onClick={() => onCardClick(card)}
                             >
-                                <Card rank={cardData.rank} suit={cardData.suit} isFaceUp={true} isSelected={isCardSelected} />
+                                <Card 
+                                    suit={card.suit} 
+                                    rank={card.rank} 
+                                    isFaceDown={false}
+                                />
                             </div>
                         );
                     })}

@@ -1,0 +1,168 @@
+.voice-chat-overlay {
+  position: fixed;
+  top: auto;
+  bottom: 20px;
+  left: 10px;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+  color: white;
+  width: 200px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.voice-user {
+  display: flex;
+  align-items: center; /* Vertically align avatar and info */
+  gap: 8px; /* Space between the circular avatar and the name/status */
+  background-color: rgba(
+    30,
+    39,
+    48,
+    0.9
+  ); /* Dark, slightly transparent background for each user entry */
+  border-radius: 20px; /* Highly rounded corners to make it capsule-like if combined with name, or circular if only avatar */
+  padding: 5px 10px; /* Padding inside each user's background card */
+  color: var(--text-primary); /* Use your defined text color */
+  font-size: 0.9em;
+  font-weight: 500;
+  position: relative; /* Needed for absolute positioning of speaking indicator */
+  transition: background-color 0.2s ease;
+  pointer-events: auto; /* Allows interaction with this specific element if needed */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+}
+
+/* Speaking effect - Border glow */
+.voice-user.speaking .voice-user-avatar {
+  border: 3px solid #2ecc71; /* Green border for speaking */
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.7); /* Green glow for speaking */
+}
+
+/* Muted effect - Red border (or grey if preferred) */
+.voice-user.muted .voice-user-avatar {
+  border: 3px solid #e74c3c; /* Red border for muted */
+}
+
+.voice-user-avatar {
+  width: 36px; /* Size of the circular avatar */
+  height: 36px;
+  border-radius: 50%; /* Makes it a perfect circle */
+  background-color: #556b7f; /* Default background for avatar (e.g., if no image) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: var(--color-white); /* Text color for initial */
+  overflow: hidden; /* Ensures any avatar image is clipped to the circle */
+  border: 3px solid transparent; /* Default transparent border */
+  transition:
+    border 0.2s ease,
+    box-shadow 0.2s ease; /* Smooth transition for speaking glow */
+}
+
+.voice-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures image fills the circle */
+}
+
+.voice-user-info {
+  display: flex;
+  flex-direction: column; /* Stack name and status vertically */
+  flex-grow: 1; /* Allow info to take up remaining space */
+}
+
+.voice-user-name {
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap; /* Prevent name from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis if name is too long */
+  max-width: 100px; /* Adjust as needed to control width */
+}
+
+.voice-user-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8em;
+  color: var(--text-secondary); /* Muted color for status icons */
+}
+
+.voice-user-status .muted-icon,
+.voice-user-status .deafened-icon {
+  color: #e74c3c; /* Red for muted/deafened icons */
+  font-size: 1.1em;
+}
+
+.muted-icon {
+  color: #e53e3e;
+  font-size: 12px;
+}
+
+.deafened-icon {
+  color: #ff8800;
+  font-size: 12px;
+}
+
+.speaking-indicator {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.speaking-wave {
+  width: 2px;
+  height: 8px;
+  background: #00ff88;
+  border-radius: 1px;
+  animation: speaking-wave 0.6s ease-in-out infinite alternate;
+}
+
+.speaking-wave:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.speaking-wave:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0px rgba(46, 204, 113, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(46, 204, 113, 1);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(46, 204, 113, 0.7);
+  }
+}
+
+.voice-user.speaking .voice-user-avatar {
+  border: 3px solid #2ecc71;
+  animation: pulse-border 1.5s infinite ease-out;
+}
+
+@media (max-width: 768px) {
+  .voice-chat-overlay {
+    top: 10px;
+    left: 10px;
+  }
+
+  .voice-user {
+    padding: 4px 8px;
+  }
+
+  .voice-user-name {
+    font-size: 12px;
+  }
+
+  .voice-user-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+}

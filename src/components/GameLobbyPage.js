@@ -29,7 +29,6 @@ function GameLobbyPage() {
     }, [activeTab]);
 
     useEffect(() => {
-        console.log(`GameLobbyPage: Fetching active rooms for gameType: ${gameType}`);
         getActiveRooms(gameType);
     }, [getActiveRooms, gameType]);
 
@@ -170,7 +169,7 @@ function GameLobbyPage() {
                                     <h4>{gameType ? gameType.charAt(0).toUpperCase() + gameType.slice(1).toLowerCase() : 'Game'}</h4>
                                     <p>Game: {lobby.game_type ? lobby.game_type.toUpperCase() : 'N/A'}</p>
                                     <p>Host: {lobby.host_name}</p>
-                                    <p>Players: {lobby.current_players} / {lobby.max_players}</p>
+                                    <p>Players: {lobby.player_count} / {lobby.max_players}</p>
                                     <p className={`lobby-status status-${lobby.status.toLowerCase().replace(' ', '-')}`}>
                                         Status: {lobby.status.replace('_', ' ')}
                                     </p>
