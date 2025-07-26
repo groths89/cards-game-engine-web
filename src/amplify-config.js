@@ -4,9 +4,9 @@ const configureAmplify = () => {
   Amplify.configure({
     Auth: {
       Cognito: {
-        userPoolId: 'YOUR_COGNITO_USER_POOL_ID', // e.g., 'us-east-1_xxxxxxxxx'
-        userPoolClientId: 'YOUR_COGNITO_APP_CLIENT_ID', // e.g., 'xxxxxxxxxxxxxxxxx'
-        region: 'us-east-1',
+        userPoolId: process.env.REACT_APP_USER_POOL_ID,
+        userPoolClientId: process.env.REACT_APP_USER_POOL_CLIENT_ID,
+        region: process.env.REACT_APP_AWS_REGION,
       }
     }
   });

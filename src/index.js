@@ -7,6 +7,11 @@ import reportWebVitals from './reportWebVitals';
 import { GameProvider } from './contexts/GameContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
 import { AuthProvider } from './contexts/AuthContext';
+import configureAmplify from './amplify-config';
+
+// Configure Amplify before rendering the app
+configureAmplify();
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
